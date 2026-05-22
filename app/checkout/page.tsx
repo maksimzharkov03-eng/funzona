@@ -1,14 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function CheckoutPage() {
   const [telegram, setTelegram] = useState("");
   const [comment, setComment] = useState("");
   const [payment, setPayment] = useState("Crypto");
+  const [cart, setCart] = useState<any[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("cart");
+    if (saved) setCart(JSON.parse(saved));
+  }, []);
+
+  const total = cart.reduce((sum, item) => {
+    return sum + Number(String(item.price).replace(/\D/g, ""));
+  }, 0);
 
   async function createOrder() {
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    if (!telegram) {
+      alert("Укажи Telegram для связи");
+      return;
+    }
 
     if (cart.length === 0) {
       alert("Корзина пустая");
@@ -37,55 +50,94 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white px-6 py-10">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-5xl font-black text-yellow-400 mb-10">
+    <main className="min-h-screen bg-black text-white px-6 py-12 overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,#ffd40022,transparent_35%)]" />
+
+      <div className="relative z-10 max-w-7xl mx-auto">
+        <h1 className="text-5xl md:text-7xl font-black text-yellow-400 mb-4">
           Оформление заказа
         </h1>
 
-        <div className="bg-white/5 border border-yellow-400/20 rounded-3xl p-8 space-y-6">
-          <div>
-            <p className="mb-3 text-gray-400">Telegram для связи</p>
+        <p className="text-gray-400 mb-10">
+          Проверь данные, выбери способ оплаты и подтверди заказ.
+        </p>
 
-            <input
-              type="text"
-              placeholder="@telegram"
-              value={telegram}
-              onChange={(e) => setTelegram(e.target.value)}
-              className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4"
-            />
-          </div>
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 bg-white/5 border border-yellow-400/20 rounded-3xl p-8 space-y-7">
+            <div>
+              <p className="mb-3 text-gray-400 font-bold">Telegram для связи</p>
 
-          <div>
-            <p className="mb-3 text-gray-400">Способ оплаты</p>
+              <input
+                type="text"
+                placeholder="@telegram"
+                value={telegram}
+                onChange={(e) => setTelegram(e.target.value)}
+                className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-yellow-400 transition"
+              />
+            </div>
 
-            <select
-              value={payment}
-              onChange={(e) => setPayment(e.target.value)}
-              className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4"
+            <div>
+              <p className="mb-4 text-gray-400 font-bold">Способ оплаты</p>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                {["Crypto", "FreeKassa"].map((method) => (
+                  <button
+                    key={method}
+                    onClick={() => setPayment(method)}
+                    className={`rounded-2xl p-5 border font-black text-left transition ${
+                      payment === method
+                        ? "bg-yellow-400 text-black border-yellow-400"
+                        : "bg-black border-yellow-400/20 text-white hover:border-yellow-400"
+                    }`}
+                  >
+                    <div className="text-2xl mb-2">
+                      {method === "Crypto" ? "₿" : "💳"}
+                    </div>
+                    {method}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-3 text-gray-400 font-bold">Комментарий к заказу</p>
+
+              <textarea
+                placeholder="Например: нужен турецкий регион"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 h-32 outline-none focus:border-yellow-400 transition"
+              />
+            </div>
+
+            <button
+              onClick={createOrder}
+              className="w-full bg-yellow-400 text-black py-5 rounded-2xl text-xl font-black hover:bg-yellow-300 transition"
             >
-              <option>Crypto</option>
-              <option>FreeKassa</option>
-            </select>
+              Подтвердить заказ
+            </button>
           </div>
 
-          <div>
-            <p className="mb-3 text-gray-400">Комментарий к заказу</p>
+          <div className="bg-yellow-400 text-black rounded-3xl p-6 h-fit sticky top-28">
+            <h2 className="text-3xl font-black mb-5">Ваш заказ</h2>
 
-            <textarea
-              placeholder="Например: нужен турецкий регион"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 h-32"
-            />
+            <div className="space-y-4">
+              {cart.map((item, index) => (
+                <div
+                  key={`${item.id}-${index}`}
+                  className="border-b border-black/20 pb-4"
+                >
+                  <p className="font-black">{item.name}</p>
+                  <p className="text-black/60">{item.price}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 pt-6 border-t border-black/20 flex justify-between items-center">
+              <span className="text-xl font-black">Итого:</span>
+              <span className="text-4xl font-black">{total} ₽</span>
+            </div>
           </div>
-
-          <button
-            onClick={createOrder}
-            className="w-full bg-yellow-400 text-black py-4 rounded-2xl text-xl font-black"
-          >
-            Подтвердить заказ
-          </button>
         </div>
       </div>
     </main>
