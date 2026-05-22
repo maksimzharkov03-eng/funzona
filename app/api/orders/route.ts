@@ -7,8 +7,8 @@ export async function GET() {
       id: "desc",
     },
     include: {
-  product: true,
-},
+      product: true,
+    },
   });
 
   return NextResponse.json(orders);
@@ -30,10 +30,11 @@ export async function POST(req: Request) {
     },
   });
 
-  const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-  const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
 
-  const message = `
+  if (botToken && chatId && order.product) {
+    const message = `
 🔥 Новый заказ FunZona
 
 📦 Товар: ${order.product.name}
@@ -48,16 +49,17 @@ ${body.comment || "Нет"}
 🆔 Заказ #${order.id}
 `;
 
-  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      chat_id: CHAT_ID,
-      text: message,
-    }),
-  });
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+      }),
+    });
+  }
 
   return NextResponse.json(order);
 }
