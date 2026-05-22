@@ -7,6 +7,7 @@ export default function CheckoutPage() {
   const [comment, setComment] = useState("");
   const [payment, setPayment] = useState("Crypto");
   const [cart, setCart] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("cart");
@@ -28,19 +29,31 @@ export default function CheckoutPage() {
       return;
     }
 
+    setLoading(true);
+
     for (const item of cart) {
-      await fetch("/api/orders", {
+      const res = await fetch("/api/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           productId: item.id,
+          productName: item.name,
+          productPrice: item.price,
           telegram,
           payment,
           comment,
         }),
       });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Ошибка создания заказа");
+        setLoading(false);
+        return;
+      }
     }
 
     localStorage.removeItem("cart");
@@ -65,7 +78,9 @@ export default function CheckoutPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 bg-white/5 border border-yellow-400/20 rounded-3xl p-8 space-y-7">
             <div>
-              <p className="mb-3 text-gray-400 font-bold">Telegram для связи</p>
+              <p className="mb-3 text-gray-400 font-bold">
+                Telegram для связи
+              </p>
 
               <input
                 type="text"
@@ -83,6 +98,7 @@ export default function CheckoutPage() {
                 {["Crypto", "FreeKassa"].map((method) => (
                   <button
                     key={method}
+                    type="button"
                     onClick={() => setPayment(method)}
                     className={`rounded-2xl p-5 border font-black text-left transition ${
                       payment === method
@@ -100,7 +116,9 @@ export default function CheckoutPage() {
             </div>
 
             <div>
-              <p className="mb-3 text-gray-400 font-bold">Комментарий к заказу</p>
+              <p className="mb-3 text-gray-400 font-bold">
+                Комментарий к заказу
+              </p>
 
               <textarea
                 placeholder="Например: нужен турецкий регион"
@@ -111,10 +129,12 @@ export default function CheckoutPage() {
             </div>
 
             <button
+              type="button"
               onClick={createOrder}
-              className="w-full bg-yellow-400 text-black py-5 rounded-2xl text-xl font-black hover:bg-yellow-300 transition"
+              disabled={loading}
+              className="w-full bg-yellow-400 text-black py-5 rounded-2xl text-xl font-black hover:bg-yellow-300 transition disabled:opacity-50"
             >
-              Подтвердить заказ
+              {loading ? "Оформляем..." : "Подтвердить заказ"}
             </button>
           </div>
 

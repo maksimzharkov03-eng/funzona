@@ -12,35 +12,40 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const body = await req.json();
+  try {
+    const body = await req.json();
 
-  const product = await prisma.product.findUnique({
-    where: {
-      id: Number(body.productId),
-    },
-  });
+    if (!body.telegram) {
+      return NextResponse.json(
+        { error: "Не указан Telegram" },
+        { status: 400 }
+      );
+    }
 
-  const order = await prisma.order.create({
-    data: {
-      status: "Ожидает оплаты",
-      telegram: body.telegram,
-      payment: body.payment,
-      comment: body.comment || "",
-    },
-  });
+    const productName = body.productName || "Товар без названия";
+    const productPrice = body.productPrice || "Цена не указана";
 
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+    const order = await prisma.order.create({
+      data: {
+        status: "Ожидает оплаты",
+        telegram: body.telegram,
+        payment: body.payment || "Не указано",
+        comment: body.comment || "",
+      },
+    });
 
-  if (botToken && chatId && product) {
-    const message = `
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+
+    if (botToken && chatId) {
+      const message = `
 🔥 Новый заказ FunZona
 
-📦 Товар: ${product.name}
-💰 Цена: ${product.price}
+📦 Товар: ${productName}
+💰 Цена: ${productPrice}
 
 👤 Telegram: ${body.telegram}
-💳 Оплата: ${body.payment}
+💳 Оплата: ${body.payment || "Не указано"}
 
 📝 Комментарий:
 ${body.comment || "Нет"}
@@ -48,7 +53,6 @@ ${body.comment || "Нет"}
 🆔 Заказ #${order.id}
 `;
 
-    try {
       await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
         method: "POST",
         headers: {
@@ -59,10 +63,15 @@ ${body.comment || "Нет"}
           text: message,
         }),
       });
-    } catch (error) {
-      console.log("Telegram error:", error);
     }
-  }
 
-  return NextResponse.json(order);
+    return NextResponse.json(order);
+  } catch (error) {
+    console.log("ORDER ERROR:", error);
+
+    return NextResponse.json(
+      { error: "Ошибка создания заказа" },
+      { status: 500 }
+    );
+  }
 }
