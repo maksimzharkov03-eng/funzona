@@ -31,6 +31,8 @@ export async function POST(req: Request) {
         telegram: body.telegram,
         payment: body.payment || "Не указано",
         comment: body.comment || "",
+        productName,
+        productPrice,
       },
     });
 
