@@ -21,12 +21,12 @@ export async function POST(req: Request) {
   });
 
   const order = await prisma.order.create({
-  data: {
-    status: "Ожидает оплаты",
-    telegram: body.telegram,
-    payment: body.payment,
-    comment: body.comment || "",
-  },
+    data: {
+      status: "Ожидает оплаты",
+      telegram: body.telegram,
+      payment: body.payment,
+      comment: body.comment || "",
+    },
   });
 
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -48,33 +48,20 @@ ${body.comment || "Нет"}
 🆔 Заказ #${order.id}
 `;
 
-    const telegramRes = await fetch(
-  `https://api.telegram.org/bot${botToken}/sendMessage`,
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text: message,
-    }),
-  }
-);
-
-const telegramData = await telegramRes.json();
-
-console.log("TELEGRAM STATUS:", telegramRes.status);
-console.log("TELEGRAM RESPONSE:", telegramData);
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: message,
-      }),
-    });
+    try {
+      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: message,
+        }),
+      });
+    } catch (error) {
+      console.log("Telegram error:", error);
+    }
   }
 
   return NextResponse.json(order);
