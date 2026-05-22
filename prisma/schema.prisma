@@ -22,3 +22,11 @@ model Order {
   status    String   @default("Ожидает оплаты")
   createdAt DateTime @default(now())
 }
+model Product {
+  id          Int     @id @default(autoincrement())
+  name        String
+  category    String
+  description String
+  price       String
+  image       String?
+}
