@@ -1,0 +1,110 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+export default function AccountPage() {
+  const [login, setLogin] = useState("");
+  const [orders, setOrders] = useState<any[]>([]);
+
+  async function loadOrders() {
+    const res = await fetch("/api/orders");
+    const data = await res.json();
+    setOrders(data);
+  }
+
+  async function logout() {
+    await fetch("/api/logout", {
+      method: "POST",
+    });
+
+    localStorage.removeItem("userLogin");
+    window.location.href = "/login";
+  }
+
+  useEffect(() => {
+    setLogin(localStorage.getItem("userLogin") || "Не найден");
+    loadOrders();
+  }, []);
+
+  function getStatusColor(status: string) {
+    if (status === "Ожидает оплаты") return "text-yellow-400";
+    if (status === "Оплачен") return "text-blue-400";
+    if (status === "В работе") return "text-purple-400";
+    if (status === "Выполнен") return "text-green-400";
+    if (status === "Отменен") return "text-red-400";
+
+    return "text-gray-400";
+  }
+
+  return (
+    <main className="min-h-screen bg-black text-white px-6 py-10">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-5xl font-black text-yellow-400 mb-8">
+          Личный кабинет
+        </h1>
+
+        <div className="bg-white/5 border border-yellow-400/20 rounded-3xl p-6 mb-8">
+          <h2 className="text-2xl font-black">Профиль</h2>
+
+          <p className="text-gray-400 mt-3">Логин: {login}</p>
+
+          <button
+            onClick={logout}
+            className="mt-5 bg-red-500 text-white px-6 py-3 rounded-xl font-black"
+          >
+            Выйти
+          </button>
+        </div>
+
+        <h2 className="text-3xl font-black mb-5">Мои заказы</h2>
+
+        {orders.length === 0 ? (
+          <p className="text-gray-400">Заказов пока нет</p>
+        ) : (
+          <div className="space-y-5">
+            {orders.map((order) => (
+              <div
+                key={order.id}
+                className="bg-white/5 border border-yellow-400/20 rounded-3xl p-6"
+              >
+                <div className="flex justify-between gap-6">
+                  <div>
+                    <p className="text-yellow-400 font-black">
+                      Заказ #{order.id}
+                    </p>
+
+                    <p className="text-gray-400 mt-2">
+                      Дата: {new Date(order.createdAt).toLocaleString()}
+                    </p>
+
+                    <p className="text-gray-400">
+                      Telegram: {order.telegram}
+                    </p>
+
+                    <p className="text-gray-400">
+                      Оплата: {order.payment}
+                    </p>
+
+                    <div className="mt-5 border-t border-white/10 pt-5">
+                      {order.product ? (
+                        <p className="text-gray-300">
+                          {order.product.name} — {order.product.price}
+                        </p>
+                      ) : (
+                        <p className="text-gray-500">Товар не найден</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className={`font-black ${getStatusColor(order.status)}`}>
+                    {order.status}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
