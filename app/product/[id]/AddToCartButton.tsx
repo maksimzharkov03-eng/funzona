@@ -1,25 +1,14 @@
 "use client";
 
-export default function AddToCartButton({
-  product,
-}: {
-  product: any;
-}) {
+export default function AddToCartButton({ product }: { product: any }) {
   function addToCart() {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-
-    const exists = cart.find((item: any) => item.id === product.id);
-
-    if (exists) {
-      alert("Товар уже в корзине");
-      return;
-    }
 
     cart.push(product);
 
     localStorage.setItem("cart", JSON.stringify(cart));
 
-    alert("Товар добавлен в корзину");
+    window.location.href = "/cart";
   }
 
   return (
