@@ -6,9 +6,6 @@ export async function GET() {
     orderBy: {
       id: "desc",
     },
-    include: {
-      product: true,
-    },
   });
 
   return NextResponse.json(orders);
@@ -17,28 +14,30 @@ export async function GET() {
 export async function POST(req: Request) {
   const body = await req.json();
 
+  const product = await prisma.product.findUnique({
+    where: {
+      id: Number(body.productId),
+    },
+  });
+
   const order = await prisma.order.create({
-    data: {
-      status: "Ожидает оплаты",
-      telegram: body.telegram,
-      payment: body.payment,
-      comment: body.comment || "",
-      productId: Number(body.productId),
-    },
-    include: {
-      product: true,
-    },
+  data: {
+    status: "Ожидает оплаты",
+    telegram: body.telegram,
+    payment: body.payment,
+    comment: body.comment || "",
+  },
   });
 
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
 
-  if (botToken && chatId && order.product) {
+  if (botToken && chatId && product) {
     const message = `
 🔥 Новый заказ FunZona
 
-📦 Товар: ${order.product.name}
-💰 Цена: ${order.product.price}
+📦 Товар: ${product.name}
+💰 Цена: ${product.price}
 
 👤 Telegram: ${body.telegram}
 💳 Оплата: ${body.payment}
