@@ -7,9 +7,8 @@ export async function GET() {
       id: "desc",
     },
     include: {
-      product: true,
-      user: true,
-    },
+  product: true,
+},
   });
 
   return NextResponse.json(orders);
