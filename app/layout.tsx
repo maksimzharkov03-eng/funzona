@@ -1,5 +1,5 @@
 import "./globals.css";
-
+import HeaderClient from "./HeaderClient";
 export const metadata = {
   title: "FunZona",
   description: "Premium Digital Store",
@@ -15,44 +15,7 @@ export default function RootLayout({
       <body className="bg-black text-white">
 
         {/* NAVBAR */}
-        <header className="sticky top-0 z-50 border-b border-yellow-400/10 bg-black/70 backdrop-blur-xl">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-
-            <a
-              href="/"
-              className="text-3xl font-black text-yellow-400"
-            >
-              FUNZONA
-            </a>
-
-            <nav className="hidden md:flex gap-8 font-semibold text-gray-300">
-              <a href="/catalog" className="hover:text-yellow-400 transition">
-                Каталог
-              </a>
-
-              <a href="/cart" className="hover:text-yellow-400 transition">
-                Корзина
-              </a>
-
-              <a href="/checkout" className="hover:text-yellow-400 transition">
-                Оформление
-              </a>
-            </nav>
-
-            <a
-              href="/cart"
-              className="bg-yellow-400 text-black px-5 py-2 rounded-xl font-black"
-            >
-              🛒 Корзина
-            </a>
-<a href="/support" className="hover:text-yellow-400 transition">
-  Поддержка
-</a>
-<a href="/account" className="hover:text-yellow-400 transition">
-  Кабинет
-</a>
-          </div>
-        </header>
+       <HeaderClient />
 
         {children}
 <footer className="border-t border-yellow-400/10 bg-black px-6 py-12">
