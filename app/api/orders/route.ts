@@ -48,7 +48,24 @@ ${body.comment || "Нет"}
 🆔 Заказ #${order.id}
 `;
 
-    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    const telegramRes = await fetch(
+  `https://api.telegram.org/bot${botToken}/sendMessage`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text: message,
+    }),
+  }
+);
+
+const telegramData = await telegramRes.json();
+
+console.log("TELEGRAM STATUS:", telegramRes.status);
+console.log("TELEGRAM RESPONSE:", telegramData);
       method: "POST",
       headers: {
         "Content-Type": "application/json",
