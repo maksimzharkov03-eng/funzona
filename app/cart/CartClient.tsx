@@ -16,18 +16,31 @@ export default function CartClient() {
     localStorage.setItem("cart", JSON.stringify(updated));
   }
 
+  function clearCart() {
+    localStorage.removeItem("cart");
+    setCart([]);
+  }
+
   const total = cart.reduce((sum, item) => {
-    return sum + Number(item.price.replace(/\D/g, ""));
+    return sum + Number(String(item.price).replace(/\D/g, ""));
   }, 0);
 
   if (cart.length === 0) {
     return (
-      <div className="bg-white/5 border border-yellow-400/20 rounded-3xl p-8">
-        <p className="text-gray-400">Корзина пока пустая</p>
+      <div className="bg-white/5 border border-yellow-400/20 rounded-3xl p-10 text-center">
+        <div className="text-6xl mb-5">🛒</div>
+
+        <h2 className="text-3xl font-black text-yellow-400">
+          Корзина пустая
+        </h2>
+
+        <p className="text-gray-400 mt-3">
+          Добавь товары из каталога, чтобы оформить заказ.
+        </p>
 
         <a
           href="/catalog"
-          className="inline-block mt-6 bg-yellow-400 text-black px-6 py-3 rounded-xl font-black"
+          className="inline-block mt-8 bg-yellow-400 text-black px-8 py-4 rounded-2xl font-black hover:bg-yellow-300 transition"
         >
           Перейти в каталог
         </a>
@@ -36,54 +49,91 @@ export default function CartClient() {
   }
 
   return (
-    <div className="space-y-5">
-      {cart.map((item, index) => (
-        <div
-          key={`${item.id}-${index}`}
-          className="bg-white/5 border border-yellow-400/20 rounded-3xl p-6 flex justify-between"
+    <div className="grid lg:grid-cols-3 gap-8">
+      <div className="lg:col-span-2 space-y-5">
+        {cart.map((item, index) => (
+          <div
+            key={`${item.id}-${index}`}
+            className="bg-white/5 border border-yellow-400/20 rounded-3xl p-5 flex gap-5 hover:border-yellow-400 transition"
+          >
+            <div className="w-28 h-28 rounded-2xl overflow-hidden bg-yellow-400/10 flex items-center justify-center shrink-0">
+              {item.image ? (
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-4xl">🎮</span>
+              )}
+            </div>
+
+            <div className="flex-1">
+              <p className="text-yellow-400 font-black text-sm">
+                {item.category}
+              </p>
+
+              <h2 className="text-2xl font-black mt-1">
+                {item.name}
+              </h2>
+
+              <p className="text-gray-400 mt-2 line-clamp-2">
+                {item.description}
+              </p>
+
+              <button
+                onClick={() => removeItem(index)}
+                className="mt-4 text-red-400 font-black hover:text-red-300 transition"
+              >
+                Удалить
+              </button>
+            </div>
+
+            <div className="text-right">
+              <p className="text-3xl font-black text-yellow-400">
+                {item.price}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-yellow-400 text-black rounded-3xl p-6 h-fit sticky top-28">
+        <h2 className="text-3xl font-black">
+          Ваш заказ
+        </h2>
+
+        <div className="mt-6 space-y-3 text-black/70 font-bold">
+          <div className="flex justify-between">
+            <span>Товаров:</span>
+            <span>{cart.length}</span>
+          </div>
+
+          <div className="flex justify-between">
+            <span>Сумма:</span>
+            <span>{total} ₽</span>
+          </div>
+        </div>
+
+        <div className="border-t border-black/20 mt-6 pt-6 flex justify-between items-center">
+          <span className="text-xl font-black">Итого:</span>
+          <span className="text-4xl font-black">{total} ₽</span>
+        </div>
+
+        <a
+          href="/checkout"
+          className="block text-center mt-6 bg-black text-yellow-400 py-4 rounded-2xl text-xl font-black hover:opacity-90 transition"
         >
-          <div>
-            <p className="text-yellow-400 font-bold">{item.category}</p>
-            <h2 className="text-2xl font-black mt-2">{item.name}</h2>
-            <p className="text-gray-400 mt-2">{item.description}</p>
-          </div>
-
-          <div className="text-right">
-            <p className="text-3xl font-black text-yellow-400">{item.price}</p>
-
-            <button
-              onClick={() => removeItem(index)}
-              className="mt-4 text-red-400"
-            >
-              Удалить
-            </button>
-          </div>
-        </div>
-      ))}
-
-      <div className="bg-yellow-400 text-black rounded-3xl p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-black">Итоговая сумма</h2>
-          <p className="text-3xl font-black">{total} ₽</p>
-        </div>
+          Оформить заказ
+        </a>
 
         <button
-          onClick={() => {
-            localStorage.removeItem("cart");
-            setCart([]);
-          }}
-          className="mt-6 w-full bg-red-500 text-white py-4 rounded-2xl font-black"
+          onClick={clearCart}
+          className="mt-4 w-full bg-red-500 text-white py-4 rounded-2xl font-black hover:bg-red-600 transition"
         >
           Очистить корзину
         </button>
       </div>
-
-     <a
-  href="/checkout"
-  className="block text-center bg-yellow-400 text-black py-4 rounded-2xl text-xl font-black"
->
-  Оформить заказ
-</a>
     </div>
   );
 }
