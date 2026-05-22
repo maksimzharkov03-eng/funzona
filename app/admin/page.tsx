@@ -56,6 +56,41 @@ export default function AdminPage() {
     return "bg-gray-500 text-white";
   }
 
+  const totalOrders = orders.length;
+
+  const paidOrders = orders.filter(
+    (order) =>
+      order.status === "Оплачен" ||
+      order.status === "В работе" ||
+      order.status === "Выдан"
+  ).length;
+
+  const pendingOrders = orders.filter(
+    (order) => order.status === "Ожидает оплаты"
+  ).length;
+
+  const completedOrders = orders.filter(
+    (order) => order.status === "Выдан"
+  ).length;
+
+  const cancelledOrders = orders.filter(
+    (order) => order.status === "Отменен"
+  ).length;
+
+  const totalRevenue = orders
+    .filter(
+      (order) =>
+        order.status === "Оплачен" ||
+        order.status === "В работе" ||
+        order.status === "Выдан"
+    )
+    .reduce((sum, order) => {
+      return (
+        sum +
+        Number(String(order.productPrice || "0").replace(/\D/g, ""))
+      );
+    }, 0);
+
   const filteredOrders =
     filter === "Все"
       ? orders
@@ -67,6 +102,53 @@ export default function AdminPage() {
         <h1 className="text-5xl font-black text-yellow-400 mb-8">
           Админка FunZona
         </h1>
+
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-5 mb-10">
+          <div className="bg-white/5 border border-yellow-400/20 rounded-3xl p-6">
+            <p className="text-gray-400">Всего заказов</p>
+            <h3 className="text-4xl font-black text-yellow-400 mt-3">
+              {totalOrders}
+            </h3>
+          </div>
+
+          <div className="bg-white/5 border border-blue-400/20 rounded-3xl p-6">
+            <p className="text-gray-400">Оплачено</p>
+            <h3 className="text-4xl font-black text-blue-400 mt-3">
+              {paidOrders}
+            </h3>
+          </div>
+
+          <div className="bg-white/5 border border-yellow-400/20 rounded-3xl p-6">
+            <p className="text-gray-400">Ожидают</p>
+            <h3 className="text-4xl font-black text-yellow-400 mt-3">
+              {pendingOrders}
+            </h3>
+          </div>
+
+          <div className="bg-white/5 border border-green-400/20 rounded-3xl p-6">
+            <p className="text-gray-400">Выдано</p>
+            <h3 className="text-4xl font-black text-green-400 mt-3">
+              {completedOrders}
+            </h3>
+          </div>
+
+          <div className="bg-white/5 border border-red-400/20 rounded-3xl p-6">
+            <p className="text-gray-400">Отменено</p>
+            <h3 className="text-4xl font-black text-red-400 mt-3">
+              {cancelledOrders}
+            </h3>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-yellow-400 to-yellow-300 text-black rounded-3xl p-8 mb-10">
+          <p className="font-bold text-black/60">
+            Оборот по оплаченным заказам
+          </p>
+
+          <h2 className="text-5xl font-black mt-3">
+            {totalRevenue} ₽
+          </h2>
+        </div>
 
         <h2 className="text-3xl font-black mb-5">
           Заказы
