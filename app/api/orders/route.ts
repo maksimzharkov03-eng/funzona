@@ -66,20 +66,13 @@ ${body.comment || "Нет"}
     }
 
     return NextResponse.json(order);
-    } catch (error: any) {
-  console.log("ORDER ERROR:", error);
-
-  return NextResponse.json(
-    {
-      error: error?.message || "Ошибка создания заказа",
-    },
-    { status: 500 }
-  );
-}
+  } catch (error: any) {
     console.log("ORDER ERROR:", error);
 
     return NextResponse.json(
-      { error: "Ошибка создания заказа" },
+      {
+        error: error?.message || "Ошибка создания заказа",
+      },
       { status: 500 }
     );
   }
