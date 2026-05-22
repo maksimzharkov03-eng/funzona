@@ -33,3 +33,15 @@ model Product {
   price       String
   image       String?
 }
+
+model Game {
+  id          Int      @id @default(autoincrement())
+  title       String
+  image       String
+  platform    String
+  region      String
+  originalPrice Float
+  currency    String
+  rubPrice    Int
+  createdAt   DateTime @default(now())
+}
