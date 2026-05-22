@@ -98,6 +98,51 @@ export default function Home() {
             ))}
           </div>
         </div>
+        <div className="relative z-10 max-w-7xl mx-auto mt-24 overflow-hidden">
+  <h2 className="text-4xl font-black mb-10 text-center">
+    Каталог FunZona
+  </h2>
+
+  <div className="flex gap-6 animate-[scroll_22s_linear_infinite]">
+    {[
+      ["🎮", "PlayStation Plus", "Essential • Extra • Deluxe"],
+      ["🤖", "ChatGPT", "Plus • Pro • подписки"],
+      ["🍏", "Apple ID", "USA • Turkey • India"],
+      ["💳", "Пополнения", "PSN • кошельки • карты"],
+      ["🕹️", "Игры", "Аккаунты • шеринг • цифровые товары"],
+      ["🎁", "Подарочные карты", "Apple ID • PSN • цифровые коды"],
+      ["⚡", "Быстрая выдача", "После оплаты и проверки"],
+      ["🛡️", "Гарантия", "Поддержка и сопровождение"],
+      ["🎮", "PlayStation Plus", "Essential • Extra • Deluxe"],
+      ["🤖", "ChatGPT", "Plus • Pro • подписки"],
+      ["🍏", "Apple ID", "USA • Turkey • India"],
+      ["💳", "Пополнения", "PSN • кошельки • карты"],
+    ].map((cat, index) => (
+      <a
+        href="/catalog"
+        key={index}
+        className="min-w-[260px] bg-white/5 border border-yellow-400/20 rounded-3xl p-6 hover:border-yellow-400 hover:-translate-y-2 transition"
+      >
+        <div className="text-5xl mb-6">{cat[0]}</div>
+        <h3 className="text-2xl font-black text-yellow-400">
+          {cat[1]}
+        </h3>
+        <p className="text-gray-400 mt-3">{cat[2]}</p>
+      </a>
+    ))}
+  </div>
+</div>
+
+<style>{`
+  @keyframes scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+`}</style>
       </section>
     </main>
   );
