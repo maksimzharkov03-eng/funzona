@@ -8,35 +8,17 @@ datasource db {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  login    String @unique
-  password String
-
-  orders Order[]
-}
-
-model Product {
-  id          Int     @id @default(autoincrement())
-  name        String
-  category    String
-  description String
-  price       String
-  image       String?
-
-  orders Order[]
+  id        Int      @id @default(autoincrement())
+  login     String   @unique
+  password  String
+  createdAt DateTime @default(now())
 }
 
 model Order {
   id        Int      @id @default(autoincrement())
-  status    String
   telegram  String
   payment   String
-  comment   String
+  comment   String?
+  status    String   @default("Ожидает оплаты")
   createdAt DateTime @default(now())
-
-  userId    Int?
-  productId Int?
-
-  user    User?    @relation(fields: [userId], references: [id])
-  product Product? @relation(fields: [productId], references: [id])
 }
