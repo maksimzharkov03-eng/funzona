@@ -20,10 +20,8 @@ model Order {
   payment      String
   comment      String?
   status       String   @default("Ожидает оплаты")
-
-  productName  String
-  productPrice String
-
+  productName  String   @default("Товар не указан")
+  productPrice String   @default("0 ₽")
   createdAt    DateTime @default(now())
 }
 

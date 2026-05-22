@@ -11,7 +11,7 @@ export default function AdminPage() {
     "Ожидает оплаты",
     "Оплачен",
     "В работе",
-    "Выполнен",
+    "Выдан",
     "Отменен",
   ];
 
@@ -38,11 +38,21 @@ export default function AdminPage() {
   }
 
   function getStatusClass(status: string) {
-    if (status === "Ожидает оплаты") return "bg-yellow-400 text-black";
-    if (status === "Оплачен") return "bg-blue-500 text-white";
-    if (status === "В работе") return "bg-purple-500 text-white";
-    if (status === "Выполнен") return "bg-green-500 text-white";
-    if (status === "Отменен") return "bg-red-500 text-white";
+    if (status === "Ожидает оплаты")
+      return "bg-yellow-400 text-black";
+
+    if (status === "Оплачен")
+      return "bg-blue-500 text-white";
+
+    if (status === "В работе")
+      return "bg-purple-500 text-white";
+
+    if (status === "Выдан")
+      return "bg-green-500 text-white";
+
+    if (status === "Отменен")
+      return "bg-red-500 text-white";
+
     return "bg-gray-500 text-white";
   }
 
@@ -58,7 +68,9 @@ export default function AdminPage() {
           Админка FunZona
         </h1>
 
-        <h2 className="text-3xl font-black mb-5">Заказы</h2>
+        <h2 className="text-3xl font-black mb-5">
+          Заказы
+        </h2>
 
         <div className="flex flex-wrap gap-3 mb-8">
           {["Все", ...statuses].map((status) => (
@@ -77,7 +89,9 @@ export default function AdminPage() {
         </div>
 
         {filteredOrders.length === 0 ? (
-          <p className="text-gray-400">Заказов пока нет</p>
+          <p className="text-gray-400">
+            Заказов пока нет
+          </p>
         ) : (
           <div className="space-y-5">
             {filteredOrders.map((order) => (
@@ -85,14 +99,15 @@ export default function AdminPage() {
                 key={order.id}
                 className="bg-white/5 border border-yellow-400/20 rounded-3xl p-6"
               >
-                <div className="flex justify-between gap-6">
+                <div className="flex justify-between gap-6 flex-col lg:flex-row">
                   <div>
-                    <p className="text-yellow-400 font-black">
+                    <p className="text-yellow-400 font-black text-xl">
                       Заказ #{order.id}
                     </p>
 
-                    <p className="text-gray-400 mt-2">
-                      Дата: {new Date(order.createdAt).toLocaleString()}
+                    <p className="text-gray-400 mt-3">
+                      Дата:{" "}
+                      {new Date(order.createdAt).toLocaleString()}
                     </p>
 
                     <p className="text-gray-400">
@@ -108,18 +123,20 @@ export default function AdminPage() {
                     </p>
 
                     <div className="mt-5 border-t border-white/10 pt-5">
-                      {order.product ? (
-                        <p className="text-gray-300">
-                          {order.product.name} — {order.product.price}
-                        </p>
-                      ) : (
-                        <p className="text-gray-500">Товар не найден</p>
-                      )}
+                      <p className="text-white font-bold text-lg">
+                        {order.productName || "Товар не указан"}
+                      </p>
+
+                      <p className="text-yellow-400 font-black mt-1">
+                        {order.productPrice || "0 ₽"}
+                      </p>
                     </div>
                   </div>
 
                   <div className="min-w-[260px]">
-                    <p className="text-gray-400 mb-4">Статус:</p>
+                    <p className="text-gray-400 mb-4">
+                      Статус заказа
+                    </p>
 
                     <details className="group">
                       <summary
@@ -128,6 +145,7 @@ export default function AdminPage() {
                         )}`}
                       >
                         <span>{order.status}</span>
+
                         <span className="group-open:rotate-180 transition">
                           ▼
                         </span>
@@ -148,7 +166,7 @@ export default function AdminPage() {
                                 details.open = false;
                               }
                             }}
-                            className={`w-full rounded-xl py-3 font-black ${getStatusClass(
+                            className={`w-full rounded-xl py-3 font-black transition ${getStatusClass(
                               status
                             )}`}
                           >

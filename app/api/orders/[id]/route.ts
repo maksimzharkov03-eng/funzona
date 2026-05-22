@@ -5,18 +5,24 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  try {
+    const { id } = await params;
+    const body = await req.json();
 
-  const body = await req.json();
+    const order = await prisma.order.update({
+      where: {
+        id: Number(id),
+      },
+      data: {
+        status: body.status,
+      },
+    });
 
-  const order = await prisma.order.update({
-    where: {
-      id: Number(id),
-    },
-    data: {
-      status: body.status,
-    },
-  });
-
-  return NextResponse.json(order);
+    return NextResponse.json(order);
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Ошибка обновления заказа" },
+      { status: 500 }
+    );
+  }
 }
