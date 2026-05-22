@@ -31,5 +31,34 @@ export async function POST(req: Request) {
     },
   });
 
+  const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+  const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+  const message = `
+🔥 Новый заказ FunZona
+
+📦 Товар: ${order.product.name}
+💰 Цена: ${order.product.price}
+
+👤 Telegram: ${body.telegram}
+💳 Оплата: ${body.payment}
+
+📝 Комментарий:
+${body.comment || "Нет"}
+
+🆔 Заказ #${order.id}
+`;
+
+  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      chat_id: CHAT_ID,
+      text: message,
+    }),
+  });
+
   return NextResponse.json(order);
 }
