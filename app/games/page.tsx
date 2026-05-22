@@ -73,9 +73,26 @@ export default function GamesPage() {
                   {game.rubPrice} ₽
                 </p>
 
-                <button className="mt-5 w-full bg-yellow-400 text-black py-3 rounded-xl font-black">
-                  Купить
-                </button>
+                <button
+  onClick={() => {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+    cart.push({
+      id: `game-${game.id}`,
+      name: game.title,
+      category: "Игры",
+      description: `${game.platform} • ${game.region}`,
+      price: `${game.rubPrice} ₽`,
+      image: game.image,
+    });
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    window.location.href = "/cart";
+  }}
+  className="mt-5 w-full bg-yellow-400 text-black py-3 rounded-xl font-black hover:bg-yellow-300 transition"
+>
+  Купить
+</button>
               </div>
             </div>
           ))}

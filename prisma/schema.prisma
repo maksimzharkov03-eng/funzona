@@ -22,6 +22,7 @@ model Order {
   status       String   @default("Ожидает оплаты")
   productName  String   @default("Товар не указан")
   productPrice String   @default("0 ₽")
+  userLogin    String?
   createdAt    DateTime @default(now())
 }
 
@@ -35,13 +36,13 @@ model Product {
 }
 
 model Game {
-  id          Int      @id @default(autoincrement())
-  title       String
-  image       String
-  platform    String
-  region      String
+  id            Int      @id @default(autoincrement())
+  title         String
+  image         String
+  platform      String
+  region        String
   originalPrice Float
-  currency    String
-  rubPrice    Int
-  createdAt   DateTime @default(now())
+  currency      String
+  rubPrice      Int
+  createdAt     DateTime @default(now())
 }

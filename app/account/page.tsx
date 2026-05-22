@@ -6,9 +6,12 @@ export default function AccountPage() {
   const [login, setLogin] = useState("");
   const [orders, setOrders] = useState<any[]>([]);
 
-  async function loadOrders() {
-    const res = await fetch("/api/orders");
+  async function loadOrders(userLogin: string) {
+    if (!userLogin) return;
+
+    const res = await fetch(`/api/orders?userLogin=${userLogin}`);
     const data = await res.json();
+
     setOrders(data);
   }
 
@@ -22,8 +25,15 @@ export default function AccountPage() {
   }
 
   useEffect(() => {
-    setLogin(localStorage.getItem("userLogin") || "Не найден");
-    loadOrders();
+    const userLogin = localStorage.getItem("userLogin");
+
+    if (!userLogin) {
+      window.location.href = "/login";
+      return;
+    }
+
+    setLogin(userLogin);
+    loadOrders(userLogin);
   }, []);
 
   function getStatusColor(status: string) {
@@ -86,13 +96,10 @@ export default function AccountPage() {
                     </p>
 
                     <div className="mt-5 border-t border-white/10 pt-5">
-                      {order.product ? (
-                        <p className="text-gray-300">
-                          {order.product.name} — {order.product.price}
-                        </p>
-                      ) : (
-                        <p className="text-gray-500">Товар не найден</p>
-                      )}
+                      <p className="text-gray-300">
+                        {order.productName || "Товар не найден"} —{" "}
+                        {order.productPrice || "Цена не указана"}
+                      </p>
                     </div>
                   </div>
 
