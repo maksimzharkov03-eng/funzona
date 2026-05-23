@@ -1,31 +1,46 @@
 import { prisma } from "@/app/lib/prisma";
+import { calculateRubPrice, demoGames, roundTryPrice } from "@/app/lib/games";
+import { storeGames } from "@/app/data/ps-store-games";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
     const games = await prisma.game.findMany({
-      orderBy: {
-        id: "desc",
-      },
+      orderBy: [{ isFeatured: "desc" }, { id: "desc" }],
     });
-
-    return NextResponse.json(games);
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Ошибка загрузки игр" },
-      { status: 500 }
+    const existingTitles = new Set(
+      storeGames.map((game) => `${game.region}:${game.title}`.trim().toLowerCase())
     );
+    const customGames = games.filter(
+      (game) =>
+        !existingTitles.has(`${game.region}:${game.title}`.trim().toLowerCase()) &&
+        game.title.trim() !== "EA SPORTS FC™ 26" &&
+        Number(game.originalPrice) > 0 &&
+        Number(game.rubPrice) > 0
+    );
+
+    return NextResponse.json([...storeGames, ...customGames]);
+  } catch (error) {
+    console.log("GAME LOAD ERROR:", error);
+    return NextResponse.json(storeGames.length > 0 ? storeGames : demoGames);
   }
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-
-    const rubPrice = Math.ceil(
-      Number(body.originalPrice || 0) *
-      Number(body.rate || 1)
-    );
+    const originalPrice = Number(body.originalPrice || 0);
+    const rate = Number(body.rate || body.exchangeRate || 1);
+    const currency = body.currency || "TRY";
+    const roundedOriginalPrice =
+      currency === "TRY" ? roundTryPrice(originalPrice) : originalPrice;
+    const manualRubPrice = Number(body.rubPrice || 0);
+    const rubPrice =
+      manualRubPrice > 0
+        ? Math.ceil(manualRubPrice)
+        : calculateRubPrice(originalPrice, rate, currency);
+    const oldRubPrice = Number(body.oldRubPrice || 0);
+    const discountPercent = Number(body.discountPercent || 0);
 
     const game = await prisma.game.create({
       data: {
@@ -33,9 +48,18 @@ export async function POST(req: Request) {
         image: body.image || "",
         platform: body.platform || "PS5",
         region: body.region || "Турция",
-        originalPrice: Number(body.originalPrice || 0),
-        currency: body.currency || "TRY",
+        originalPrice: roundedOriginalPrice,
+        currency,
         rubPrice,
+        oldRubPrice: oldRubPrice > 0 ? oldRubPrice : null,
+        discountPercent: discountPercent > 0 ? discountPercent : null,
+        genre: body.genre || null,
+        publisher: body.publisher || null,
+        releaseDate: body.releaseDate ? new Date(body.releaseDate) : null,
+        edition: body.edition || null,
+        badge: body.badge || null,
+        description: body.description || null,
+        isFeatured: Boolean(body.isFeatured),
       },
     });
 
@@ -44,9 +68,7 @@ export async function POST(req: Request) {
     console.log("GAME CREATE ERROR:", error);
 
     return NextResponse.json(
-      {
-        error: error?.message || "Ошибка создания игры",
-      },
+      { error: error?.message || "Ошибка создания игры" },
       { status: 500 }
     );
   }

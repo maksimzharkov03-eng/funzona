@@ -1,0 +1,24 @@
+<svg width="900" height="1125" viewBox="0 0 900 1125" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="120" y1="0" x2="775" y2="1125" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1FAE5A"/>
+      <stop offset="0.46" stop-color="#0E4D32"/>
+      <stop offset="1" stop-color="#050505"/>
+    </linearGradient>
+    <radialGradient id="light" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(450 285) rotate(90) scale(500 500)">
+      <stop stop-color="#B8FF7C" stop-opacity=".75"/>
+      <stop offset="1" stop-color="#B8FF7C" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="900" height="1125" fill="url(#bg)"/>
+  <rect width="900" height="1125" fill="url(#light)"/>
+  <path d="M80 640C252 540 418 518 574 575C702 622 811 602 900 540V1125H80V640Z" fill="#071109" fill-opacity=".84"/>
+  <path d="M450 242C353 242 274 321 274 418C274 515 353 594 450 594C547 594 626 515 626 418C626 321 547 242 450 242Z" fill="white" fill-opacity=".9"/>
+  <path d="M450 318L515 365L490 442H410L385 365L450 318Z" fill="#111"/>
+  <path d="M348 392L274 418L348 444L385 365L348 392Z" fill="#111"/>
+  <path d="M552 392L626 418L552 444L515 365L552 392Z" fill="#111"/>
+  <path d="M410 442L384 526L450 594L516 526L490 442H410Z" fill="#111"/>
+  <text x="70" y="815" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="116" font-weight="900">FC 25</text>
+  <text x="70" y="910" fill="#FFD400" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="900">SPORTS EDITION</text>
+  <text x="70" y="990" fill="#D7DEEA" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700">PS5 • FunZona Digital</text>
+</svg>

@@ -1,0 +1,21 @@
+<svg width="900" height="1125" viewBox="0 0 900 1125" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="110" y1="0" x2="775" y2="1125" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D6EDF8"/>
+      <stop offset="0.42" stop-color="#31546A"/>
+      <stop offset="1" stop-color="#08090C"/>
+    </linearGradient>
+    <radialGradient id="ice" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(462 340) rotate(90) scale(470 470)">
+      <stop stop-color="#F6FBFF"/>
+      <stop offset="1" stop-color="#F6FBFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="900" height="1125" fill="url(#bg)"/>
+  <rect width="900" height="1125" fill="url(#ice)" opacity=".58"/>
+  <path d="M450 160C322 160 218 264 218 392C218 520 322 624 450 624C578 624 682 520 682 392C682 264 578 160 450 160ZM450 228C540 228 614 302 614 392C614 482 540 556 450 556C360 556 286 482 286 392C286 302 360 228 450 228Z" fill="#111418" fill-opacity=".9"/>
+  <path d="M276 170L391 392L278 614" stroke="#C7262C" stroke-width="34" stroke-linecap="round"/>
+  <path d="M450 265L503 374L623 392L536 477L557 596L450 540L343 596L364 477L277 392L397 374L450 265Z" fill="#D7ECF7" fill-opacity=".35" stroke="white" stroke-opacity=".35" stroke-width="6"/>
+  <text x="70" y="835" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="80" font-weight="900">GOD OF WAR</text>
+  <text x="70" y="925" fill="#FFD400" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="900">RAGNAROK</text>
+  <text x="70" y="1000" fill="#D7DEEA" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700">PS4/PS5 • FunZona Digital</text>
+</svg>

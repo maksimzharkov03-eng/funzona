@@ -1,0 +1,23 @@
+<svg width="900" height="1125" viewBox="0 0 900 1125" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="126" y1="0" x2="814" y2="1125" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1B2E6D"/>
+      <stop offset="0.46" stop-color="#B41122"/>
+      <stop offset="1" stop-color="#05060A"/>
+    </linearGradient>
+    <radialGradient id="light" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(450 320) rotate(90) scale(520 420)">
+      <stop stop-color="#7DB7FF" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#7DB7FF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="900" height="1125" fill="url(#bg)"/>
+  <rect width="900" height="1125" fill="url(#light)"/>
+  <path d="M54 234C230 152 484 124 846 198" stroke="white" stroke-opacity=".2" stroke-width="6"/>
+  <path d="M92 786C234 584 450 464 817 410" stroke="white" stroke-opacity=".16" stroke-width="6"/>
+  <path d="M455 205C396 205 344 246 329 304L275 514C255 592 314 668 395 668H515C596 668 655 592 635 514L581 304C566 246 514 205 455 205Z" fill="#0A0D18" stroke="white" stroke-opacity=".18" stroke-width="8"/>
+  <path d="M352 350C398 330 429 330 455 356C481 330 512 330 558 350C530 390 497 406 455 406C413 406 380 390 352 350Z" fill="white"/>
+  <path d="M316 692C380 742 530 742 594 692" stroke="#FFD400" stroke-width="10" stroke-linecap="round"/>
+  <text x="70" y="870" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="900">SPIDER-MAN</text>
+  <text x="70" y="950" fill="#FFD400" font-family="Arial, Helvetica, sans-serif" font-size="92" font-weight="900">2</text>
+  <text x="70" y="1018" fill="#D7DEEA" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700">PS5 • FunZona Digital</text>
+</svg>

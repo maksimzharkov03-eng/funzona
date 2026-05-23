@@ -1,4 +1,6 @@
 import { prisma } from "@/app/lib/prisma";
+import { verifyToken } from "@/app/lib/auth";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -32,6 +34,20 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    let userLogin = body.userLogin;
+
+    if (!userLogin) {
+      const token = (await cookies()).get("token")?.value;
+
+      if (token) {
+        try {
+          const payload: any = await verifyToken(token);
+          userLogin = payload.login;
+        } catch {
+          userLogin = "";
+        }
+      }
+    }
 
     if (!body.telegram) {
       return NextResponse.json(
@@ -40,7 +56,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!body.userLogin) {
+    if (!userLogin) {
       return NextResponse.json(
         { error: "Пользователь не авторизован" },
         { status: 401 }
@@ -61,7 +77,7 @@ export async function POST(req: Request) {
         comment: body.comment || "",
         productName,
         productPrice,
-        userLogin: body.userLogin,
+        userLogin,
       },
     });
 
@@ -75,7 +91,7 @@ export async function POST(req: Request) {
 📦 Товар: ${productName}
 💰 Цена: ${productPrice}
 
-👤 Логин клиента: ${body.userLogin}
+👤 Логин клиента: ${userLogin}
 💬 Telegram: ${body.telegram}
 💳 Оплата: ${body.payment || "Не указано"}
 

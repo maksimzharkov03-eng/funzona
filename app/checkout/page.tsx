@@ -19,6 +19,8 @@ export default function CheckoutPage() {
   }, 0);
 
   async function createOrder() {
+    const userLogin = localStorage.getItem("userLogin") || "";
+
     if (!telegram) {
       alert("Укажи Telegram для связи");
       return;
@@ -41,6 +43,7 @@ export default function CheckoutPage() {
           productId: item.id,
           productName: item.name,
           productPrice: item.price,
+          userLogin,
           telegram,
           payment,
           comment,
@@ -51,6 +54,9 @@ export default function CheckoutPage() {
 
       if (!res.ok) {
         alert(data.error || "Ошибка создания заказа");
+        if (res.status === 401) {
+          window.location.href = "/login";
+        }
         setLoading(false);
         return;
       }

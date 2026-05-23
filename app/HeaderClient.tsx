@@ -18,6 +18,7 @@ export default function HeaderClient() {
 
         <nav className="hidden md:flex gap-8 font-semibold text-gray-300">
           <a href="/catalog" className="hover:text-yellow-400 transition">Каталог</a>
+          <a href="/games" className="hover:text-yellow-400 transition">Игры</a>
           <a href="/cart" className="hover:text-yellow-400 transition">Корзина</a>
           <a href="/checkout" className="hover:text-yellow-400 transition">Оформление</a>
           <a href="/support" className="hover:text-yellow-400 transition">Поддержка</a>
