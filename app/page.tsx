@@ -5,6 +5,21 @@ import { useEffect, useState } from "react";
 export default function Home() {
   const [products, setProducts] = useState<any[]>([]);
 
+  const catalogItems = [
+    ["🎮", "PlayStation Plus", "Essential • Extra • Deluxe", "/subscriptions"],
+    ["🤖", "ChatGPT", "Plus • Pro • подписки", "/catalog?category=ChatGPT"],
+    ["🍏", "Apple ID", "USA • Turkey • India", "/catalog?category=Apple%20ID"],
+    ["💳", "Пополнения", "PSN • кошельки • карты", "/catalog?category=PlayStation"],
+    ["🕹️", "Игры", "Аккаунты • шеринг • цифровые товары", "/games"],
+    ["🎁", "Подарочные карты", "Apple ID • PSN • цифровые коды", "/catalog?category=Apple%20ID"],
+    ["⚡", "Быстрая выдача", "После оплаты и проверки", "/checkout"],
+    ["🛡️", "Гарантия", "Поддержка и сопровождение", "/support"],
+    ["🎮", "PlayStation Plus", "Essential • Extra • Deluxe", "/subscriptions"],
+    ["🤖", "ChatGPT", "Plus • Pro • подписки", "/catalog?category=ChatGPT"],
+    ["🍏", "Apple ID", "USA • Turkey • India", "/catalog?category=Apple%20ID"],
+    ["💳", "Пополнения", "PSN • кошельки • карты", "/catalog?category=PlayStation"],
+  ];
+
   useEffect(() => {
     loadProducts();
   }, []);
@@ -99,27 +114,23 @@ export default function Home() {
           </div>
         </div>
         <div className="relative z-10 max-w-7xl mx-auto mt-24 overflow-hidden">
-  <h2 className="text-4xl font-black mb-10 text-center">
-    Каталог FunZona
-  </h2>
+  <div className="mb-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <h2 className="text-4xl font-black text-center">
+      Каталог FunZona
+    </h2>
+
+    <a
+      href="/catalog"
+      className="w-fit bg-yellow-400 text-black px-5 py-3 rounded-2xl font-black hover:bg-yellow-300 transition"
+    >
+      Весь каталог
+    </a>
+  </div>
 
   <div className="flex gap-6 animate-[scroll_22s_linear_infinite]">
-    {[
-      ["🎮", "PlayStation Plus", "Essential • Extra • Deluxe"],
-      ["🤖", "ChatGPT", "Plus • Pro • подписки"],
-      ["🍏", "Apple ID", "USA • Turkey • India"],
-      ["💳", "Пополнения", "PSN • кошельки • карты"],
-      ["🕹️", "Игры", "Аккаунты • шеринг • цифровые товары"],
-      ["🎁", "Подарочные карты", "Apple ID • PSN • цифровые коды"],
-      ["⚡", "Быстрая выдача", "После оплаты и проверки"],
-      ["🛡️", "Гарантия", "Поддержка и сопровождение"],
-      ["🎮", "PlayStation Plus", "Essential • Extra • Deluxe"],
-      ["🤖", "ChatGPT", "Plus • Pro • подписки"],
-      ["🍏", "Apple ID", "USA • Turkey • India"],
-      ["💳", "Пополнения", "PSN • кошельки • карты"],
-    ].map((cat, index) => (
+    {catalogItems.map((cat, index) => (
       <a
-        href="/catalog"
+        href={cat[3]}
         key={index}
         className="min-w-[260px] bg-white/5 border border-yellow-400/20 rounded-3xl p-6 hover:border-yellow-400 hover:-translate-y-2 transition"
       >

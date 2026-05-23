@@ -138,14 +138,14 @@ const psStoreGamesRaw: MarketplaceGame[] = [
   game(
     20000002,
     "Forza Horizon 5",
-    "https://image.api.playstation.com/vulcan/ap/rnd/202605/1210/4a51b3dc46af0a5aa9c9f8bfbf470047fdded9fa28c4c1c2.png",
+    "https://image.api.playstation.com/vulcan/ap/rnd/202502/1900/631436cfbc1d64659c778e3783f29fafad6022145e0ffec8.jpg",
     924.6,
     { genre: "Racing", badge: "Popular" }
   ),
   game(
     20000003,
     "Diablo® IV",
-    "https://image.api.playstation.com/vulcan/ap/rnd/202501/2717/42b3ee6b1b2094212231b0b0a82824f687fc5c4dc9bde31c.png",
+    "https://image.api.playstation.com/vulcan/ap/rnd/202405/3123/218ac4e34bf15f7cdfa24f7e452cadf2ebb378c765d242fe.jpg",
     541,
     { genre: "RPG", badge: "Discount", oldRubPrice: 4320, discountPercent: 50 }
   ),
@@ -159,42 +159,42 @@ const psStoreGamesRaw: MarketplaceGame[] = [
   game(
     20000006,
     "ASTRO BOT",
-    "https://image.api.playstation.com/vulcan/ap/rnd/202202/2816/K6mmm89oNII1iI1aqaClO0wh.png",
+    "https://image.api.playstation.com/vulcan/ap/rnd/202406/0500/ae5bd5dc2ab0e6a4f8c1d2510cc50bb642f20980fd53f676.png",
     699,
     { genre: "Adventure", badge: "PS5" }
   ),
   game(
     20000007,
     "Minecraft",
-    "https://image.api.playstation.com/vulcan/ap/rnd/202406/0500/8f15268257b878597757fcc5f2c9545840867bc71fc863b1.png",
+    "https://image.api.playstation.com/vulcan/ap/rnd/202407/1020/91fe046f742042e3b31e57f7731dbe2226e1fd1e02a36223.jpg",
     849,
     { genre: "Adventure", badge: "Popular", platform: "PS4/PS5" }
   ),
   game(
     20000009,
     "Directive 8020",
-    "https://image.api.playstation.com/vulcan/ap/rnd/202508/1316/3302f35b66691aa405aee31624c0c95fe73081be8e0c75bb.png",
+    "https://image.api.playstation.com/vulcan/ap/rnd/202408/0522/3d39d2bd3efa79aa1401d51242edb57a42c31245d1ec4f36.png",
     149,
     { genre: "Horror", badge: "Pre-order" }
   ),
   game(
     20000010,
     "Mixtape",
-    "https://image.api.playstation.com/vulcan/ap/rnd/202408/0522/cd5597316c7f1369ae9ebefba8ba4ebcbd969cce48539dfd.png",
+    "https://image.api.playstation.com/vulcan/ap/rnd/202602/2500/2ef26cfaf8377e0d625ca3f61cafeb161c3720f9a134df26.png",
     816,
     { genre: "Adventure", badge: "New" }
   ),
   game(
     20000011,
     "I Am Cat",
-    "https://image.api.playstation.com/vulcan/ap/rnd/202506/0416/a02d45b5ce43fb3f8a862561d5fda731f553a9f6e9a19d07.png",
+    "https://image.api.playstation.com/vulcan/ap/rnd/202501/0912/fc915b1278e6b9d76a06a98eb30db8e89ae143baa47d5f3a.jpg",
     649,
     { genre: "Simulation", badge: "New" }
   ),
   game(
     20000012,
     "SAROS",
-    "https://image.api.playstation.com/vulcan/ap/rnd/202501/0912/3274e857444154cacdd4e3b668bf301dc847b5055ec50a7b.png",
+    "https://image.api.playstation.com/vulcan/ap/rnd/202509/2318/56a1375534b11bba4f1d733c915f492c753ac995d3c044ab.png",
     449,
     { genre: "Action", badge: "New" }
   ),
@@ -292,14 +292,14 @@ export const uaStoreGames: MarketplaceGame[] = [
   uaGame(
     30000009,
     "Forza Horizon 5",
-    "https://image.api.playstation.com/vulcan/ap/rnd/202501/2717/42b3ee6b1b2094212231b0b0a82824f687fc5c4dc9bde31c.png",
+    "https://image.api.playstation.com/vulcan/ap/rnd/202502/1900/631436cfbc1d64659c778e3783f29fafad6022145e0ffec8.jpg",
     719.4,
     { genre: "Racing", badge: "RU-UA Discount", oldRubPrice: getRubPriceByUahPrice(1199), discountPercent: 40 }
   ),
   uaGame(
     30000010,
     "Directive 8020",
-    "https://image.api.playstation.com/vulcan/ap/rnd/202408/0522/cd5597316c7f1369ae9ebefba8ba4ebcbd969cce48539dfd.png",
+    "https://image.api.playstation.com/vulcan/ap/rnd/202408/0522/3d39d2bd3efa79aa1401d51242edb57a42c31245d1ec4f36.png",
     1499,
     { genre: "Horror", badge: "RU-UA" }
   ),
@@ -313,7 +313,7 @@ export const uaStoreGames: MarketplaceGame[] = [
   uaGame(
     30000012,
     "Diablo® IV",
-    "https://image.api.playstation.com/vulcan/ap/rnd/202405/3123/1abfc0f37be11993bd5e67fcb1a9e2c0d656142ace2f232e.png",
+    "https://image.api.playstation.com/vulcan/ap/rnd/202405/3123/218ac4e34bf15f7cdfa24f7e452cadf2ebb378c765d242fe.jpg",
     1017.6,
     { genre: "RPG", badge: "RU-UA Discount", oldRubPrice: getRubPriceByUahPrice(1696), discountPercent: 40 }
   ),
@@ -334,14 +334,14 @@ export const uaStoreGames: MarketplaceGame[] = [
   uaGame(
     30000014,
     "I Am Cat",
-    "https://image.api.playstation.com/vulcan/ap/rnd/202501/0912/3274e857444154cacdd4e3b668bf301dc847b5055ec50a7b.png",
+    "https://image.api.playstation.com/vulcan/ap/rnd/202501/0912/fc915b1278e6b9d76a06a98eb30db8e89ae143baa47d5f3a.jpg",
     489,
     { genre: "Simulation", badge: "RU-UA" }
   ),
   uaGame(
     30000015,
     "Mixtape",
-    "https://image.api.playstation.com/vulcan/ap/rnd/202506/0416/a02d45b5ce43fb3f8a862561d5fda731f553a9f6e9a19d07.png",
+    "https://image.api.playstation.com/vulcan/ap/rnd/202602/2500/2ef26cfaf8377e0d625ca3f61cafeb161c3720f9a134df26.png",
     619,
     { genre: "Adventure", badge: "RU-UA" }
   ),
