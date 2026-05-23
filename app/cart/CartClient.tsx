@@ -27,7 +27,7 @@ export default function CartClient() {
 
   if (cart.length === 0) {
     return (
-      <div className="bg-white/5 border border-yellow-400/20 rounded-3xl p-10 text-center">
+      <div className="bg-white/5 border border-yellow-400/20 rounded-3xl p-6 sm:p-10 text-center">
         <div className="text-6xl mb-5">🛒</div>
 
         <h2 className="text-3xl font-black text-yellow-400">
@@ -49,14 +49,14 @@ export default function CartClient() {
   }
 
   return (
-    <div className="grid lg:grid-cols-3 gap-8">
+    <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
       <div className="lg:col-span-2 space-y-5">
         {cart.map((item, index) => (
           <div
             key={`${item.id}-${index}`}
-            className="bg-white/5 border border-yellow-400/20 rounded-3xl p-5 flex gap-5 hover:border-yellow-400 transition"
+            className="bg-white/5 border border-yellow-400/20 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row gap-4 sm:gap-5 hover:border-yellow-400 transition"
           >
-            <div className="w-28 h-28 rounded-2xl overflow-hidden bg-yellow-400/10 flex items-center justify-center shrink-0">
+            <div className="w-full sm:w-28 h-40 sm:h-28 rounded-2xl overflow-hidden bg-yellow-400/10 flex items-center justify-center shrink-0">
               {item.image ? (
                 <img
                   src={item.image}
@@ -73,7 +73,7 @@ export default function CartClient() {
                 {item.category}
               </p>
 
-              <h2 className="text-2xl font-black mt-1">
+              <h2 className="text-xl sm:text-2xl font-black mt-1">
                 {item.name}
               </h2>
 
@@ -89,8 +89,8 @@ export default function CartClient() {
               </button>
             </div>
 
-            <div className="text-right">
-              <p className="text-3xl font-black text-yellow-400">
+            <div className="sm:text-right">
+              <p className="text-2xl sm:text-3xl font-black text-yellow-400">
                 {item.price}
               </p>
             </div>
@@ -98,7 +98,7 @@ export default function CartClient() {
         ))}
       </div>
 
-      <div className="bg-yellow-400 text-black rounded-3xl p-6 h-fit sticky top-28">
+      <div className="bg-yellow-400 text-black rounded-3xl p-5 sm:p-6 h-fit lg:sticky lg:top-28">
         <h2 className="text-3xl font-black">
           Ваш заказ
         </h2>
@@ -117,7 +117,7 @@ export default function CartClient() {
 
         <div className="border-t border-black/20 mt-6 pt-6 flex justify-between items-center">
           <span className="text-xl font-black">Итого:</span>
-          <span className="text-4xl font-black">{total} ₽</span>
+          <span className="text-3xl sm:text-4xl font-black">{total} ₽</span>
         </div>
 
         <a

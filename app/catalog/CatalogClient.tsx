@@ -44,7 +44,7 @@ export default function CatalogClient() {
       : products.filter((product) => product.category === category);
 
   return (
-    <main className="min-h-screen bg-black text-white px-6 py-12 overflow-hidden">
+    <main className="min-h-screen bg-black text-white px-4 sm:px-6 py-8 sm:py-12 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,#ffd40022,transparent_35%)]" />
 
       <div className="relative z-10 max-w-7xl mx-auto">
@@ -53,16 +53,16 @@ export default function CatalogClient() {
             FUNZONA MARKETPLACE
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-black">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black">
             Каталог <span className="text-yellow-400">товаров</span>
           </h1>
 
-          <p className="text-gray-400 mt-5 max-w-2xl text-lg">
+          <p className="text-gray-400 mt-5 max-w-2xl text-base sm:text-lg leading-7">
             Подписки, пополнения, Apple ID, ChatGPT и игровые цифровые товары.
           </p>
         </div>
 
-        <div className="flex gap-4 mb-10 flex-wrap">
+        <div className="flex gap-3 sm:gap-4 mb-8 sm:mb-10 flex-wrap">
           {categories.map((item) => (
             <button
               key={item}
@@ -74,7 +74,7 @@ export default function CatalogClient() {
 
                 setCategory(item);
               }}
-              className={`px-6 py-3 rounded-2xl transition border font-black ${
+              className={`px-4 sm:px-6 py-3 rounded-2xl transition border text-sm sm:text-base font-black ${
                 category === item
                   ? "bg-yellow-400 text-black border-yellow-400 shadow-[0_0_25px_rgba(255,212,0,0.35)]"
                   : "bg-white/5 border-yellow-400/20 hover:border-yellow-400 hover:bg-yellow-400/10"
@@ -95,8 +95,8 @@ export default function CatalogClient() {
             ))}
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="bg-white/5 border border-yellow-400/20 rounded-3xl p-10 text-center">
-            <h2 className="text-3xl font-black text-yellow-400">
+          <div className="bg-white/5 border border-yellow-400/20 rounded-3xl p-6 sm:p-10 text-center">
+            <h2 className="text-2xl sm:text-3xl font-black text-yellow-400">
               Товаров пока нет
             </h2>
 
@@ -105,12 +105,12 @@ export default function CatalogClient() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
             {filteredProducts.map((product) => (
               <a
                 href={`/product/${product.id}`}
                 key={product.id}
-                className="group relative bg-gradient-to-b from-yellow-400/10 via-white/5 to-black border border-yellow-400/10 rounded-3xl p-5 hover:border-yellow-400 hover:-translate-y-2 transition duration-300 overflow-hidden"
+                className="group relative bg-gradient-to-b from-yellow-400/10 via-white/5 to-black border border-yellow-400/10 rounded-3xl p-4 sm:p-5 hover:border-yellow-400 hover:-translate-y-2 transition duration-300 overflow-hidden"
               >
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition bg-[radial-gradient(circle_at_top,#ffd40033,transparent_45%)]" />
 
@@ -137,7 +137,7 @@ export default function CatalogClient() {
                     </span>
                   </div>
 
-                  <h2 className="text-2xl font-black mt-3 group-hover:text-yellow-400 transition line-clamp-2">
+                  <h2 className="text-xl sm:text-2xl font-black mt-3 group-hover:text-yellow-400 transition line-clamp-2">
                     {product.name}
                   </h2>
 
@@ -146,7 +146,7 @@ export default function CatalogClient() {
                   </p>
 
                   <div className="flex items-center justify-between mt-6">
-                    <p className="text-3xl font-black text-yellow-400">
+                    <p className="text-2xl sm:text-3xl font-black text-yellow-400">
                       {product.price}
                     </p>
 

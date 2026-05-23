@@ -165,22 +165,22 @@ export default function GamesPage() {
     sortOptions.find((option) => option.value === sort) || sortOptions[0];
 
   return (
-    <main className="min-h-screen bg-black text-white px-4 sm:px-6 py-10 overflow-hidden">
+    <main className="min-h-screen bg-black text-white px-4 sm:px-6 py-8 sm:py-10 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_left,#ffd40033,transparent_34%),radial-gradient(circle_at_top_right,#2563eb33,transparent_28%)]" />
 
       <div className="relative z-10 max-w-7xl mx-auto">
-        <section className="grid lg:grid-cols-[1fr_380px] gap-8 items-stretch mb-14">
-          <div className="flex flex-col justify-center py-8">
-            <div className="inline-flex w-fit items-center gap-2 border border-yellow-400/30 bg-yellow-400/10 text-yellow-400 rounded-full px-5 py-2 font-black mb-6">
+        <section className="grid lg:grid-cols-[1fr_380px] gap-6 sm:gap-8 items-stretch mb-10 sm:mb-14">
+          <div className="flex flex-col justify-center py-4 sm:py-8">
+            <div className="inline-flex w-fit items-center gap-2 border border-yellow-400/30 bg-yellow-400/10 text-yellow-400 rounded-full px-4 sm:px-5 py-2 text-xs sm:text-base font-black mb-5 sm:mb-6">
               🎮 PREMIUM PLAYSTATION MARKET
             </div>
 
-            <h1 className="text-5xl md:text-7xl xl:text-8xl font-black leading-[0.95]">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl xl:text-8xl font-black leading-[0.95]">
               Игры PS4 и PS5{" "}
               <span className="text-yellow-400">с быстрой выдачей</span>
             </h1>
 
-            <p className="text-gray-300 mt-6 max-w-3xl text-lg md:text-xl leading-8">
+            <p className="text-gray-300 mt-5 sm:mt-6 max-w-3xl text-base sm:text-lg md:text-xl leading-7 sm:leading-8">
               Витрина FunZona с региональными ценами, скидками, подборками и
               корзиной для оформления заказа.
             </p>
@@ -202,7 +202,7 @@ export default function GamesPage() {
           {featuredGame ? (
             <Link
               href={`/games/${featuredGame.id}`}
-              className="group relative min-h-[460px] rounded-3xl overflow-hidden border border-yellow-400/20 bg-white/5 shadow-2xl"
+              className="group relative min-h-[340px] sm:min-h-[460px] rounded-3xl overflow-hidden border border-yellow-400/20 bg-white/5 shadow-2xl"
             >
               <GameImage
                 src={getGameCover(featuredGame)}
@@ -211,19 +211,19 @@ export default function GamesPage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
-              <div className="absolute left-6 right-6 bottom-6">
+              <div className="absolute left-4 sm:left-6 right-4 sm:right-6 bottom-4 sm:bottom-6">
                 {featuredGame.discountPercent ? (
                   <span className="inline-flex bg-red-500 text-white px-3 py-2 rounded-xl font-black mb-4">
                     -{featuredGame.discountPercent}%
                   </span>
                 ) : null}
 
-                <h2 className="text-3xl font-black leading-tight">
+                <h2 className="text-2xl sm:text-3xl font-black leading-tight">
                   {featuredGame.title}
                 </h2>
 
                 <div className="flex items-end gap-3 mt-4">
-                  <span className="text-3xl font-black text-yellow-400">
+                  <span className="text-2xl sm:text-3xl font-black text-yellow-400">
                     {formatRub(featuredGame.rubPrice)}
                   </span>
                   {featuredGame.oldRubPrice ? (
@@ -257,23 +257,23 @@ export default function GamesPage() {
               </button>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-5">
+            <div className="grid md:grid-cols-3 gap-4 sm:gap-5">
               {discountedGames.map((game) => (
                 <Link
                   href={`/games/${game.id}`}
                   key={game.id}
-                  className="grid grid-cols-[110px_1fr] min-h-36 bg-white/5 border border-yellow-400/20 rounded-3xl overflow-hidden hover:border-yellow-400 transition"
+                  className="grid grid-cols-[92px_1fr] sm:grid-cols-[110px_1fr] min-h-32 sm:min-h-36 bg-white/5 border border-yellow-400/20 rounded-3xl overflow-hidden hover:border-yellow-400 transition"
                 >
                   <GameImage
                     src={getGameCover(game)}
                     title={game.title}
                     className="w-full h-full object-cover"
                   />
-                  <div className="p-5 min-w-0">
+                  <div className="p-4 sm:p-5 min-w-0">
                     <span className="inline-flex bg-red-500 text-white px-3 py-1 rounded-xl text-sm font-black">
                       -{game.discountPercent}%
                     </span>
-                    <h3 className="text-xl font-black mt-3 line-clamp-2">
+                    <h3 className="text-lg sm:text-xl font-black mt-3 line-clamp-2">
                       {game.title}
                     </h3>
                     <p className="text-gray-400 text-sm mt-2">
@@ -287,7 +287,7 @@ export default function GamesPage() {
         ) : null}
 
         <section>
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 mb-6">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5 mb-6">
             <div>
               <h2 className="text-3xl md:text-4xl font-black">
                 Каталог PlayStation
@@ -297,7 +297,7 @@ export default function GamesPage() {
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-[minmax(240px,1fr)_auto_auto_auto] gap-3 w-full lg:w-auto">
+            <div className="grid grid-cols-1 xl:grid-cols-[minmax(260px,1fr)_auto_auto_auto] gap-3 w-full xl:w-auto">
               <input
                 placeholder="Поиск игры, жанра или региона"
                 value={search}
@@ -305,12 +305,12 @@ export default function GamesPage() {
                 className="bg-white/5 border border-yellow-400/20 rounded-2xl px-5 py-4 outline-none focus:border-yellow-400"
               />
 
-              <div className="grid grid-cols-3 min-w-[240px] bg-white/5 border border-yellow-400/20 rounded-2xl p-1 gap-1">
+              <div className="grid grid-cols-3 w-full xl:min-w-[240px] bg-white/5 border border-yellow-400/20 rounded-2xl p-1 gap-1">
                 {["Все", "PS4", "PS5"].map((item) => (
                   <button
                     key={item}
                     onClick={() => setPlatform(item)}
-                    className={`rounded-xl px-4 py-3 text-sm font-black transition whitespace-nowrap ${
+                    className={`rounded-xl px-3 sm:px-4 py-3 text-sm font-black transition whitespace-nowrap ${
                       platform === item
                         ? "bg-yellow-400 text-black"
                         : "text-gray-300 hover:text-yellow-400"
@@ -321,12 +321,12 @@ export default function GamesPage() {
                 ))}
               </div>
 
-              <div className="grid grid-cols-3 min-w-[320px] bg-white/5 border border-yellow-400/20 rounded-2xl p-1 gap-1">
+              <div className="grid grid-cols-3 w-full xl:min-w-[320px] bg-white/5 border border-yellow-400/20 rounded-2xl p-1 gap-1">
                 {["Все", "Турция", "Украина"].map((item) => (
                   <button
                     key={item}
                     onClick={() => setRegion(item)}
-                    className={`rounded-xl px-4 py-3 text-sm font-black transition whitespace-nowrap ${
+                    className={`rounded-xl px-2 sm:px-4 py-3 text-xs sm:text-sm font-black transition whitespace-nowrap ${
                       region === item
                         ? "bg-yellow-400 text-black"
                         : "text-gray-300 hover:text-yellow-400"
@@ -341,7 +341,7 @@ export default function GamesPage() {
                 <button
                   type="button"
                   onClick={() => setSortOpen((open) => !open)}
-                  className="w-full min-w-[170px] bg-white/5 border border-yellow-400/20 rounded-2xl px-5 py-4 outline-none hover:border-yellow-400 transition flex items-center justify-between gap-4 font-black"
+                  className="w-full xl:min-w-[170px] bg-white/5 border border-yellow-400/20 rounded-2xl px-5 py-4 outline-none hover:border-yellow-400 transition flex items-center justify-between gap-4 font-black"
                   aria-expanded={sortOpen}
                 >
                   <span>{selectedSort.label}</span>
@@ -380,7 +380,7 @@ export default function GamesPage() {
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-7">
               {[1, 2, 3, 4].map((item) => (
                 <div
                   key={item}
@@ -406,7 +406,7 @@ export default function GamesPage() {
                 >
                   <Link
                     href={`/games/${game.id}`}
-                    className="relative block h-80 overflow-hidden bg-yellow-400/10"
+                    className="relative block h-72 sm:h-80 overflow-hidden bg-yellow-400/10"
                   >
                     <GameImage
                       src={getGameCover(game)}
@@ -431,7 +431,7 @@ export default function GamesPage() {
 
                   <div className="p-5">
                     <Link href={`/games/${game.id}`}>
-                      <h2 className="text-2xl font-black line-clamp-2 group-hover:text-yellow-400 transition min-h-[64px]">
+                      <h2 className="text-xl sm:text-2xl font-black line-clamp-2 group-hover:text-yellow-400 transition sm:min-h-[64px]">
                         {game.title}
                       </h2>
                     </Link>
@@ -447,7 +447,7 @@ export default function GamesPage() {
                     <div className="mt-5">
                       <p className="text-gray-500 text-sm">Цена FunZona</p>
                       <div className="flex items-end gap-3">
-                        <p className="text-3xl font-black text-yellow-400">
+                        <p className="text-2xl sm:text-3xl font-black text-yellow-400">
                           {formatRub(game.rubPrice)}
                         </p>
                         {game.oldRubPrice ? (

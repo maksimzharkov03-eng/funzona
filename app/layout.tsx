@@ -18,10 +18,10 @@ export default function RootLayout({
        <HeaderClient />
 
         {children}
-<footer className="border-t border-yellow-400/10 bg-black px-6 py-14">
+<footer className="border-t border-yellow-400/10 bg-black px-4 sm:px-6 py-10 sm:py-14">
   <div className="max-w-7xl mx-auto grid md:grid-cols-6 gap-10">
     <div className="md:col-span-2">
-      <h2 className="text-4xl font-black text-yellow-400">FUNZONA</h2>
+      <h2 className="text-3xl sm:text-4xl font-black text-yellow-400">FUNZONA</h2>
       <p className="text-gray-400 mt-5 leading-7">
         Premium Digital Store: PlayStation, ChatGPT, Apple ID и цифровые товары.
       </p>

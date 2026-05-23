@@ -69,20 +69,20 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white px-6 py-12 overflow-hidden">
+    <main className="min-h-screen bg-black text-white px-4 sm:px-6 py-8 sm:py-12 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,#ffd40022,transparent_35%)]" />
 
       <div className="relative z-10 max-w-7xl mx-auto">
-        <h1 className="text-5xl md:text-7xl font-black text-yellow-400 mb-4">
+        <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-yellow-400 mb-4">
           Оформление заказа
         </h1>
 
-        <p className="text-gray-400 mb-10">
+        <p className="text-gray-400 mb-8 sm:mb-10">
           Проверь данные, выбери способ оплаты и подтверди заказ.
         </p>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 bg-white/5 border border-yellow-400/20 rounded-3xl p-8 space-y-7">
+        <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="lg:col-span-2 bg-white/5 border border-yellow-400/20 rounded-3xl p-5 sm:p-8 space-y-7">
             <div>
               <p className="mb-3 text-gray-400 font-bold">
                 Telegram для связи
@@ -144,7 +144,7 @@ export default function CheckoutPage() {
             </button>
           </div>
 
-          <div className="bg-yellow-400 text-black rounded-3xl p-6 h-fit sticky top-28">
+          <div className="bg-yellow-400 text-black rounded-3xl p-5 sm:p-6 h-fit lg:sticky lg:top-28">
             <h2 className="text-3xl font-black mb-5">Ваш заказ</h2>
 
             <div className="space-y-4">
@@ -161,7 +161,7 @@ export default function CheckoutPage() {
 
             <div className="mt-6 pt-6 border-t border-black/20 flex justify-between items-center">
               <span className="text-xl font-black">Итого:</span>
-              <span className="text-4xl font-black">{total} ₽</span>
+              <span className="text-3xl sm:text-4xl font-black">{total} ₽</span>
             </div>
           </div>
         </div>

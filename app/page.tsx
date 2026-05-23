@@ -33,7 +33,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white overflow-hidden">
-      <section className="relative min-h-screen px-6 py-24 bg-[radial-gradient(circle_at_top,#ffd40055,transparent_35%),linear-gradient(180deg,#1a1600,#000)]">
+      <section className="relative min-h-screen px-4 sm:px-6 py-16 sm:py-24 bg-[radial-gradient(circle_at_top,#ffd40055,transparent_35%),linear-gradient(180deg,#1a1600,#000)]">
         <div className="absolute inset-0 bg-[radial-gradient(circle,#ffd40022,transparent_55%)] blur-3xl animate-pulse" />
 
         <div className="relative z-10 max-w-7xl mx-auto text-center">
@@ -41,37 +41,37 @@ export default function Home() {
             ⚡ PREMIUM DIGITAL STORE
           </div>
 
-          <h1 className="text-6xl md:text-9xl font-black text-yellow-400 drop-shadow-[0_0_45px_rgba(255,212,0,0.65)]">
+          <h1 className="text-5xl sm:text-6xl md:text-9xl font-black text-yellow-400 drop-shadow-[0_0_45px_rgba(255,212,0,0.65)]">
             FUNZONA
           </h1>
 
-          <p className="mt-8 text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto">
+          <p className="mt-6 sm:mt-8 text-lg sm:text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto">
             Подписки, пополнения и цифровые товары в одном месте.
           </p>
 
-          <div className="mt-10 flex flex-col sm:flex-row justify-center gap-5">
+          <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 sm:gap-5">
             <a
               href="/catalog"
-              className="bg-yellow-400 text-black px-9 py-4 rounded-2xl font-black hover:bg-yellow-300 hover:scale-105 transition"
+              className="bg-yellow-400 text-black px-6 sm:px-9 py-4 rounded-2xl font-black hover:bg-yellow-300 hover:scale-105 transition"
             >
               Перейти в каталог
             </a>
 
             <a
               href="/support"
-              className="border border-yellow-400 px-9 py-4 rounded-2xl font-black hover:bg-yellow-400/10 hover:scale-105 transition"
+              className="border border-yellow-400 px-6 sm:px-9 py-4 rounded-2xl font-black hover:bg-yellow-400/10 hover:scale-105 transition"
             >
               Поддержка
             </a>
           </div>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto mt-24">
-          <h2 className="text-4xl font-black mb-10 text-center">
+        <div className="relative z-10 max-w-7xl mx-auto mt-16 sm:mt-24">
+          <h2 className="text-3xl sm:text-4xl font-black mb-8 sm:mb-10 text-center">
             Популярные товары
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
             {products.map((product) => (
               <div
                 key={product.id}
@@ -113,9 +113,9 @@ export default function Home() {
             ))}
           </div>
         </div>
-        <div className="relative z-10 max-w-7xl mx-auto mt-24 overflow-hidden">
+        <div className="relative z-10 max-w-7xl mx-auto mt-16 sm:mt-24 overflow-hidden">
   <div className="mb-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-    <h2 className="text-4xl font-black text-center">
+    <h2 className="text-3xl sm:text-4xl font-black text-center sm:text-left">
       Каталог FunZona
     </h2>
 
@@ -127,12 +127,12 @@ export default function Home() {
     </a>
   </div>
 
-  <div className="flex gap-6 animate-[scroll_22s_linear_infinite]">
+  <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 sm:overflow-visible sm:animate-[scroll_22s_linear_infinite]">
     {catalogItems.map((cat, index) => (
       <a
         href={cat[3]}
         key={index}
-        className="min-w-[260px] bg-white/5 border border-yellow-400/20 rounded-3xl p-6 hover:border-yellow-400 hover:-translate-y-2 transition"
+        className="min-w-[220px] sm:min-w-[260px] bg-white/5 border border-yellow-400/20 rounded-3xl p-5 sm:p-6 hover:border-yellow-400 hover:-translate-y-2 transition"
       >
         <div className="text-5xl mb-6">{cat[0]}</div>
         <h3 className="text-2xl font-black text-yellow-400">
