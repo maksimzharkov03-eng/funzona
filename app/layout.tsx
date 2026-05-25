@@ -1,5 +1,6 @@
 import "./globals.css";
 import HeaderClient from "./HeaderClient";
+import MobileFloatingCart from "./MobileFloatingCart";
 export const metadata = {
   title: "FunZona",
   description: "Premium Digital Store",
@@ -24,6 +25,7 @@ export default function RootLayout({
 
         {/* NAVBAR */}
        <HeaderClient />
+       <MobileFloatingCart />
 
         {children}
 <footer className="border-t border-yellow-400/10 bg-black px-4 sm:px-6 py-10 sm:py-14">

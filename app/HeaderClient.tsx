@@ -6,7 +6,6 @@ export default function HeaderClient() {
   const [login, setLogin] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [unreadMessages, setUnreadMessages] = useState(0);
-  const [cartCount, setCartCount] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -66,37 +65,8 @@ export default function HeaderClient() {
     return () => window.clearInterval(timer);
   }, [isAdmin]);
 
-  useEffect(() => {
-    function loadCartCount() {
-      try {
-        const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-        const total = Array.isArray(cart)
-          ? cart.reduce(
-              (sum: number, item: any) => sum + Math.max(1, Number(item.quantity || 1)),
-              0
-            )
-          : 0;
-
-        setCartCount(total);
-      } catch {
-        setCartCount(0);
-      }
-    }
-
-    loadCartCount();
-    const timer = window.setInterval(loadCartCount, 1200);
-    window.addEventListener("storage", loadCartCount);
-    window.addEventListener("focus", loadCartCount);
-
-    return () => {
-      window.clearInterval(timer);
-      window.removeEventListener("storage", loadCartCount);
-      window.removeEventListener("focus", loadCartCount);
-    };
-  }, []);
 
   const unreadLabel = unreadMessages > 99 ? "99+" : String(unreadMessages);
-  const cartLabel = cartCount > 99 ? "99+" : String(cartCount);
 
   return (
     <header className="sticky top-0 z-50 border-b border-yellow-400/10 bg-black/70 backdrop-blur-xl">
@@ -192,20 +162,6 @@ export default function HeaderClient() {
           </nav>
         ) : null}
       </div>
-
-      {/* floating mobile cart */}
-      <a
-        href="/cart"
-        aria-label="Открыть корзину"
-        className="fixed bottom-4 right-4 z-[60] flex h-14 w-14 items-center justify-center rounded-2xl border border-yellow-300/40 bg-yellow-400 text-2xl font-black text-black shadow-2xl shadow-yellow-400/30 transition active:scale-95 md:hidden"
-      >
-        🛒
-        {cartCount > 0 ? (
-          <span className="absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-black text-white shadow-lg shadow-red-500/30">
-            {cartLabel}
-          </span>
-        ) : null}
-      </a>
     </header>
   );
 }
