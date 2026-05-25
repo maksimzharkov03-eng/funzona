@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const role = user.role === "admin" ? "admin" : "user";
+  const role = user.login === "admin" ? "admin" : "user";
 
   const token = await createToken({
     id: user.id,

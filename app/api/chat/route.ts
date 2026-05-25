@@ -29,7 +29,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const mode = searchParams.get("mode");
   const userLogin = searchParams.get("userLogin");
-  const isAdmin = payload.role === "admin";
+  const isAdmin = payload.role === "admin" || payload.login === "admin";
 
   if (isAdmin && mode === "conversations") {
     const messages = await prisma.chatMessage.findMany({
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
 
   const body = await req.json();
   const text = cleanText(body.text);
-  const isAdmin = payload.role === "admin";
+  const isAdmin = payload.role === "admin" || payload.login === "admin";
   const userLogin = isAdmin ? cleanText(body.userLogin) : payload.login;
 
   if (!text) {

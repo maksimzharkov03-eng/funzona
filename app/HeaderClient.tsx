@@ -28,7 +28,7 @@ export default function HeaderClient() {
       });
   }, []);
 
-  const isAdmin = role === "admin";
+  const isAdmin = login === "admin";
 
   return (
     <header className="sticky top-0 z-50 border-b border-yellow-400/10 bg-black/70 backdrop-blur-xl">

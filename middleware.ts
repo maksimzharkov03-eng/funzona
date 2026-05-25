@@ -13,7 +13,7 @@ export async function middleware(req: NextRequest) {
 
     if (
       req.nextUrl.pathname.startsWith("/admin") &&
-      payload.role !== "admin"
+      payload.login !== "admin"
     ) {
       return NextResponse.redirect(new URL("/", req.url));
     }

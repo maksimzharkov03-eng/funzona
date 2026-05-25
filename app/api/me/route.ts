@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       id: payload.id,
       login: payload.login,
-      role: payload.role === "admin" ? "admin" : "user",
+      role: payload.login === "admin" ? "admin" : "user",
     });
   } catch {
     return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
