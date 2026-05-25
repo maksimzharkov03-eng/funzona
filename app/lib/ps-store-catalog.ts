@@ -117,13 +117,23 @@ function makeNumericId(region: StoreRegion, productId: string) {
 }
 
 function normalizePlatform(body: string) {
-  const matches = Array.from(body.matchAll(/"platform":"([^"]+)"/gi)).map((match) =>
-    decodeJsonString(match[1]).toUpperCase()
-  );
-  const platforms = new Set(matches);
+  const platforms = new Set<string>();
 
-  if (platforms.has("PS4") && platforms.has("PS5")) return "PS4/PS5";
-  if (platforms.has("PS4")) return "PS4";
+  for (const arrayMatch of body.matchAll(/"platforms":\[((?:"[^"]+",?)+)\]/gi)) {
+    for (const platformMatch of arrayMatch[1].matchAll(/"([^"]+)"/g)) {
+      platforms.add(decodeJsonString(platformMatch[1]).toUpperCase());
+    }
+  }
+
+  for (const match of body.matchAll(/"platform":"([^"]+)"/gi)) {
+    platforms.add(decodeJsonString(match[1]).toUpperCase());
+  }
+
+  const hasPS4 = Array.from(platforms).some((platform) => platform.includes("PS4"));
+  const hasPS5 = Array.from(platforms).some((platform) => platform.includes("PS5"));
+
+  if (hasPS4 && hasPS5) return "PS4/PS5";
+  if (hasPS4) return "PS4";
   return "PS5";
 }
 
