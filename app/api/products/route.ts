@@ -1,5 +1,6 @@
 import { prisma } from "@/app/lib/prisma";
 import { NextResponse } from "next/server";
+import { staticCatalogProducts } from "@/app/data/products";
 
 export async function GET() {
   const products = await prisma.product.findMany({
@@ -7,8 +8,19 @@ export async function GET() {
       id: "desc",
     },
   });
+  const existingProducts = new Set(
+    products.map((product) =>
+      `${product.category}:${product.name}`.trim().toLowerCase()
+    )
+  );
+  const builtInProducts = staticCatalogProducts.filter(
+    (product) =>
+      !existingProducts.has(
+        `${product.category}:${product.name}`.trim().toLowerCase()
+      )
+  );
 
-  return NextResponse.json(products);
+  return NextResponse.json([...builtInProducts, ...products]);
 }
 
 export async function POST(req: Request) {

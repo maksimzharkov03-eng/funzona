@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="620" viewBox="0 0 900 620">
+  <defs>
+    <radialGradient id="g" cx="30%" cy="15%" r="75%">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.95"/>
+      <stop offset="52%" stop-color="#22c55e" stop-opacity="0.24"/>
+      <stop offset="100%" stop-color="#04130a"/>
+    </radialGradient>
+  </defs>
+  <rect width="900" height="620" rx="42" fill="url(#g)"/>
+  <rect x="38" y="38" width="824" height="544" rx="34" fill="rgba(0,0,0,0.32)" stroke="#22c55e" stroke-opacity="0.55" stroke-width="4"/>
+  <circle cx="735" cy="130" r="86" fill="#22c55e" opacity="0.24"/>
+  <circle cx="780" cy="455" r="145" fill="#22c55e" opacity="0.14"/>
+  <text x="78" y="170" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="900">ChatGPT</text>
+  <text x="78" y="270" fill="#22c55e" font-family="Arial, Helvetica, sans-serif" font-size="100" font-weight="900">GO</text>
+  <text x="78" y="485" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="900">1 600 ₽</text>
+  <text x="78" y="540" fill="#d6d6d6" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700">FunZona Digital Store</text>
+</svg>
