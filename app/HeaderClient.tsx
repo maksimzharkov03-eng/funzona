@@ -20,8 +20,6 @@ export default function HeaderClient() {
 
         <nav className="hidden md:flex gap-8 font-semibold text-gray-300">
           <a href="/catalog" className="hover:text-yellow-400 transition">Каталог</a>
-          <a href="/games" className="hover:text-yellow-400 transition">Игры</a>
-          <a href="/subscriptions" className="hover:text-yellow-400 transition">Подписки</a>
           <a href="/cart" className="hover:text-yellow-400 transition">Корзина</a>
           <a href="/checkout" className="hover:text-yellow-400 transition">Оформление</a>
           <a href="/support" className="hover:text-yellow-400 transition">Поддержка</a>
@@ -57,8 +55,6 @@ export default function HeaderClient() {
           <nav className="md:hidden mt-4 grid grid-cols-2 gap-3 font-black text-sm">
             {[
               ["Каталог", "/catalog"],
-              ["Игры", "/games"],
-              ["Подписки", "/subscriptions"],
               ["Корзина", "/cart"],
               ["Оформление", "/checkout"],
               ["Поддержка", "/support"],
