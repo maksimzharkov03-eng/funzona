@@ -63,6 +63,9 @@ export default function RootLayout({
         <a href="/terms" className="block hover:text-yellow-400 transition">
           Пользовательское соглашение
         </a>
+        <a href="/faq" className="block hover:text-yellow-400 transition">
+          FAQ
+        </a>
       </div>
     </div>
 

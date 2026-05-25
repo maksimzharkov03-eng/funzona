@@ -24,7 +24,8 @@ export default function HeaderClient() {
           <a href="/subscriptions" className="hover:text-yellow-400 transition">Подписки</a>
           <a href="/cart" className="hover:text-yellow-400 transition">Корзина</a>
           <a href="/checkout" className="hover:text-yellow-400 transition">Оформление</a>
-          <a href="/support" className="hover:text-yellow-400 transition">Поддержка</a>\n          <a href="/faq" className="hover:text-yellow-400 transition">FAQ</a>
+          <a href="/support" className="hover:text-yellow-400 transition">Поддержка</a>
+          <a href="/faq" className="hover:text-yellow-400 transition">FAQ</a>
         </nav>
 
         <div className="hidden md:block">
@@ -60,7 +61,8 @@ export default function HeaderClient() {
               ["Подписки", "/subscriptions"],
               ["Корзина", "/cart"],
               ["Оформление", "/checkout"],
-              ["Поддержка", "/support"],\n              ["FAQ", "/faq"],
+              ["Поддержка", "/support"],
+              ["FAQ", "/faq"],
             ].map(([label, href]) => (
               <a
                 key={href}
