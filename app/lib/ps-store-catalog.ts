@@ -41,6 +41,14 @@ const maxSearchPages = 2;
 const maxGamesPerRegion = 500;
 const cacheSeconds = 60 * 60 * 6;
 
+const blockedGameTitles = [
+  "stalker 2",
+  "s.t.a.l.k.e.r. 2",
+  "s.t.a.l.k.e.r. 2: heart of chornobyl",
+  "s.t.a.l.k.e.r. 2 heart of chornobyl",
+  "сталкер 2",
+];
+
 const skipWords = [
   "add-on",
   "avatar",
@@ -177,6 +185,24 @@ function normalizePlatform(body: string) {
 
 function shouldSkipProduct(product: ParsedProduct) {
   if (!product.image || !product.platform || product.price <= 0) return true;
+
+  const normalizedTitle = product.name
+    .toLowerCase()
+    .replace(/[^a-zа-яё0-9]+/gi, " ")
+    .trim();
+
+  if (
+    blockedGameTitles.some((title) => {
+      const normalizedBlockedTitle = title
+        .toLowerCase()
+        .replace(/[^a-zа-яё0-9]+/gi, " ")
+        .trim();
+
+      return normalizedTitle.includes(normalizedBlockedTitle);
+    })
+  ) {
+    return true;
+  }
 
   const text = [
     product.name,
