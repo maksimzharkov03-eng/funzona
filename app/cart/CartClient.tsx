@@ -30,7 +30,6 @@ function compactCart(items: any[]) {
 export default function CartClient() {
   const [cart, setCart] = useState<any[]>([]);
   const [telegram, setTelegram] = useState("");
-  const [email, setEmail] = useState("");
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -107,9 +106,7 @@ export default function CartClient() {
         productName: "Заказ из " + cart.length + " товаров",
         productPrice: formatRub(total),
         items,
-        comment:
-          comment +
-          (email ? "\nEmail для получения: " + email : ""),
+        comment,
       }),
     });
 
@@ -267,19 +264,6 @@ export default function CartClient() {
               placeholder="@telegram или оставь пустым"
               value={telegram}
               onChange={(event) => setTelegram(event.target.value)}
-              className="mt-3 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-4 outline-none focus:border-yellow-400"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-black uppercase text-gray-300">
-              Email, необязательно
-            </label>
-            <input
-              type="email"
-              placeholder="mail@example.com"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
               className="mt-3 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-4 outline-none focus:border-yellow-400"
             />
           </div>
