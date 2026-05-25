@@ -16,7 +16,7 @@ function priceToCents(price: string) {
   return Math.round(value * 100);
 }
 
-function text(value: FormDataEntryValue | string | null) {
+function text(value: FormDataEntryValue | string | null | undefined) {
   return String(value || "").trim();
 }
 
