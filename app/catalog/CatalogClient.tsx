@@ -2,6 +2,13 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import {
+  formatSubscriptionPrice,
+  subscriptionCountries,
+  subscriptionPlans,
+  type SubscriptionCountry,
+  type SubscriptionPlan,
+} from "@/app/data/subscriptions";
 
 type Product = {
   id: number | string;
@@ -14,6 +21,11 @@ type Product = {
 
 type AppleCartItem = {
   product: Product;
+  quantity: number;
+};
+
+type SubscriptionCartItem = {
+  plan: SubscriptionPlan;
   quantity: number;
 };
 
@@ -52,6 +64,8 @@ const appleRegions = [
   { key: "India", label: "Индия", badge: "IN", color: "bg-green-500" },
 ];
 
+const subscriptionTierOrder = ["Essential", "Extra", "Deluxe", "EA Play"];
+
 function formatRub(value: number) {
   return new Intl.NumberFormat("ru-RU").format(value) + " ₽";
 }
@@ -72,6 +86,20 @@ function getAppleNominal(product: Product) {
     .replace("Apple ID Turkey ", "")
     .replace("Apple ID USA ", "")
     .replace("Apple ID India ", "");
+}
+
+function planToProduct(plan: SubscriptionPlan): Product {
+  return {
+    id: "subscription-" + plan.id,
+    name:
+      plan.tier === "EA Play"
+        ? "EA Play " + plan.duration
+        : "PlayStation Plus " + plan.tier + " " + plan.duration,
+    category: "Подписки",
+    description: plan.country + " • " + plan.service,
+    price: formatSubscriptionPrice(plan.price),
+    image: "",
+  };
 }
 
 function ProductImage({
@@ -203,6 +231,125 @@ function QuantityControls({
         В корзину
       </button>
     </div>
+  );
+}
+
+function SubscriptionCheckoutPanel({
+  items,
+  updateItem,
+  removeItem,
+  clearItems,
+  checkout,
+}: {
+  items: SubscriptionCartItem[];
+  updateItem: (plan: SubscriptionPlan, quantity: number) => void;
+  removeItem: (plan: SubscriptionPlan) => void;
+  clearItems: () => void;
+  checkout: () => void;
+}) {
+  const total = items.reduce(
+    (sum, item) => sum + item.plan.price * item.quantity,
+    0
+  );
+
+  return (
+    <aside className="lg:sticky lg:top-28 h-fit rounded-3xl border border-yellow-400/25 bg-[#151208] p-4 sm:p-5 shadow-2xl shadow-yellow-950/30">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-xl font-black uppercase">Оформление</h2>
+        <button
+          type="button"
+          onClick={clearItems}
+          className="text-xs font-black text-gray-500 hover:text-yellow-400 transition"
+        >
+          Очистить
+        </button>
+      </div>
+
+      <div className="mt-6 space-y-5">
+        <section>
+          <div className="flex items-center gap-2 text-xs font-black uppercase text-gray-400">
+            <span className="rounded bg-yellow-400 px-2 py-1 text-black">1</span>
+            Подписки
+          </div>
+
+          <div className="mt-3 space-y-3">
+            {items.length === 0 ? (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-gray-400">
+                Выбери тариф, срок и нажми “В корзину”.
+              </div>
+            ) : (
+              items.map((item) => (
+                <div
+                  key={item.plan.id}
+                  className="grid grid-cols-[54px_1fr_auto] gap-3 rounded-2xl border border-white/10 bg-white/5 p-3"
+                >
+                  <div className="h-14 w-14 rounded-2xl bg-yellow-400 text-black flex items-center justify-center text-xl font-black">
+                    PS
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="truncate font-black text-sm">
+                      {item.plan.tier === "EA Play"
+                        ? "EA Play"
+                        : "PS Plus " + item.plan.tier}
+                    </h3>
+                    <p className="mt-1 text-xs text-gray-400">
+                      {item.plan.country} • {item.plan.duration} •{" "}
+                      {formatSubscriptionPrice(item.plan.price)}
+                    </p>
+                    <div className="mt-2 grid grid-cols-[28px_34px_28px] gap-1">
+                      <button
+                        type="button"
+                        onClick={() => updateItem(item.plan, Math.max(1, item.quantity - 1))}
+                        className="h-7 rounded-lg border border-white/10 text-white hover:bg-white/10"
+                      >
+                        -
+                      </button>
+                      <div className="h-7 rounded-lg bg-black/50 flex items-center justify-center text-sm font-black">
+                        {item.quantity}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => updateItem(item.plan, item.quantity + 1)}
+                        className="h-7 rounded-lg bg-white/10 text-white hover:bg-white/20"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(item.plan)}
+                    className="h-9 w-9 rounded-xl bg-red-500/10 text-red-300 hover:bg-red-500 hover:text-white transition"
+                    aria-label="Удалить"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
+        <div className="rounded-2xl border border-yellow-400/30 bg-yellow-400/10 p-4 text-sm font-black text-yellow-300">
+          Проверь регион аккаунта PlayStation перед оплатой.
+        </div>
+
+        <section>
+          <div className="flex items-center justify-between rounded-2xl border border-yellow-400/25 bg-yellow-400/10 p-4">
+            <span className="font-black uppercase text-gray-300">Итого</span>
+            <span className="text-2xl font-black">{formatRub(total)}</span>
+          </div>
+          <button
+            type="button"
+            onClick={checkout}
+            disabled={items.length === 0}
+            className="mt-3 w-full rounded-2xl bg-yellow-400 px-5 py-4 font-black text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Оформить {formatRub(total)}
+          </button>
+        </section>
+      </div>
+    </aside>
   );
 }
 
@@ -345,6 +492,9 @@ export default function CatalogClient() {
   const [appleRegion, setAppleRegion] = useState("Turkey");
   const [appleCart, setAppleCart] = useState<AppleCartItem[]>([]);
   const [appleEmail, setAppleEmail] = useState("");
+  const [subscriptionCountry, setSubscriptionCountry] =
+    useState<SubscriptionCountry>("Украина");
+  const [subscriptionCart, setSubscriptionCart] = useState<SubscriptionCartItem[]>([]);
 
   useEffect(() => {
     const categoryFromUrl = searchParams.get("category");
@@ -381,6 +531,24 @@ export default function CatalogClient() {
         .filter((product) => product.category === "Apple ID")
         .filter((product) => getAppleRegion(product) === appleRegion),
     [appleRegion, products]
+  );
+
+  const groupedSubscriptionPlans = useMemo(() => {
+    const plans = subscriptionPlans.filter(
+      (plan) => plan.country === subscriptionCountry
+    );
+
+    return subscriptionTierOrder
+      .map((tier) => ({
+        tier,
+        plans: plans.filter((plan) => plan.tier === tier),
+      }))
+      .filter((group) => group.plans.length > 0);
+  }, [subscriptionCountry]);
+
+  const subscriptionCount = groupedSubscriptionPlans.reduce(
+    (sum, group) => sum + group.plans.length,
+    0
   );
 
   useEffect(() => {
@@ -467,12 +635,61 @@ export default function CatalogClient() {
     window.location.href = "/checkout";
   }
 
-  function selectCategory(item: string) {
-    if (item === "Подписки") {
-      window.location.href = "/subscriptions";
-      return;
+  function addSubscriptionPlan(plan: SubscriptionPlan) {
+    const quantity = quantities["subscription-" + plan.id] || 1;
+
+    setSubscriptionCart((items) => {
+      const existing = items.find((item) => item.plan.id === plan.id);
+
+      if (existing) {
+        return items.map((item) =>
+          item.plan.id === plan.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      }
+
+      return [...items, { plan, quantity }];
+    });
+
+    setToast(
+      (plan.tier === "EA Play" ? "EA Play" : "PS Plus " + plan.tier) +
+        " x" +
+        quantity +
+        " добавлено в оформление"
+    );
+  }
+
+  function updateSubscriptionItem(plan: SubscriptionPlan, quantity: number) {
+    setSubscriptionCart((items) =>
+      items.map((item) =>
+        item.plan.id === plan.id
+          ? { ...item, quantity: Math.max(1, quantity) }
+          : item
+      )
+    );
+  }
+
+  function removeSubscriptionItem(plan: SubscriptionPlan) {
+    setSubscriptionCart((items) =>
+      items.filter((item) => item.plan.id !== plan.id)
+    );
+  }
+
+  function checkoutSubscriptionItems() {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+    for (const item of subscriptionCart) {
+      for (let index = 0; index < item.quantity; index += 1) {
+        cart.push(planToProduct(item.plan));
+      }
     }
 
+    localStorage.setItem("cart", JSON.stringify(cart));
+    window.location.href = "/checkout";
+  }
+
+  function selectCategory(item: string) {
     if (item === "Игры") {
       window.location.href = "/games";
       return;
@@ -505,7 +722,11 @@ export default function CatalogClient() {
             <div className="rounded-2xl border border-yellow-400/20 bg-white/5 px-4 py-3 w-fit">
               <p className="text-xs text-gray-500 font-black uppercase">В наличии</p>
               <p className="text-2xl font-black text-yellow-400">
-                {category === "Apple ID" ? appleProducts.length : filteredProducts.length}
+                {category === "Подписки"
+                  ? subscriptionCount
+                  : category === "Apple ID"
+                    ? appleProducts.length
+                    : filteredProducts.length}
               </p>
             </div>
           </div>
@@ -576,7 +797,106 @@ export default function CatalogClient() {
           </div>
         </section>
 
-        {category === "Apple ID" ? (
+        {category === "Подписки" ? (
+          <section>
+            <div className="mb-5 rounded-3xl border border-yellow-400/20 bg-[linear-gradient(135deg,#221c05,#070707)] p-6 sm:p-8 overflow-hidden">
+              <div className="flex items-center justify-between gap-5">
+                <div>
+                  <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-yellow-400">
+                    PlayStation Subscriptions
+                  </div>
+                  <h2 className="mt-3 text-3xl sm:text-4xl font-black">
+                    PlayStation Plus и EA Play
+                  </h2>
+                  <p className="mt-3 text-gray-400 font-bold">
+                    Выбери регион, тариф и срок. Цена уже указана в рублях.
+                  </p>
+                </div>
+                <div className="hidden sm:flex h-24 w-24 rounded-[2rem] bg-yellow-400 text-black items-center justify-center text-3xl font-black">
+                  PS
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-6 flex gap-3 overflow-x-auto pb-2">
+              {subscriptionCountries.map((country) => (
+                <button
+                  key={country}
+                  type="button"
+                  onClick={() => setSubscriptionCountry(country)}
+                  className={[
+                    "min-w-36 rounded-2xl border px-5 py-3 font-black transition",
+                    subscriptionCountry === country
+                      ? "border-yellow-400 bg-yellow-400 text-black"
+                      : "border-yellow-400/20 bg-white/5 text-gray-300 hover:border-yellow-400",
+                  ].join(" ")}
+                >
+                  {country}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid lg:grid-cols-[1fr_350px] gap-6">
+              <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                {groupedSubscriptionPlans.map((group) => (
+                  <section
+                    key={group.tier}
+                    className="rounded-3xl border border-yellow-400/20 bg-white/5 overflow-hidden"
+                  >
+                    <div className="bg-yellow-400 px-5 py-4 text-black">
+                      <p className="text-xs font-black uppercase opacity-70">
+                        {group.tier === "EA Play" ? "EA Play" : "PlayStation Plus"}
+                      </p>
+                      <h3 className="text-2xl font-black">{group.tier}</h3>
+                    </div>
+
+                    <div className="p-4 space-y-3">
+                      {group.plans.map((plan) => {
+                        const product = planToProduct(plan);
+
+                        return (
+                          <article
+                            key={plan.id}
+                            className="rounded-2xl border border-white/10 bg-black/60 p-4"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="font-black text-gray-200">
+                                  {plan.duration}
+                                </p>
+                                <p className="mt-1 text-xs text-gray-500">
+                                  {plan.country}
+                                </p>
+                              </div>
+                              <p className="text-xl font-black text-yellow-400 whitespace-nowrap">
+                                {formatSubscriptionPrice(plan.price)}
+                              </p>
+                            </div>
+
+                            <QuantityControls
+                              product={product}
+                              quantity={quantities["subscription-" + plan.id] || 1}
+                              setQuantity={setProductQuantity}
+                              addToCart={() => addSubscriptionPlan(plan)}
+                            />
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
+              </div>
+
+              <SubscriptionCheckoutPanel
+                items={subscriptionCart}
+                updateItem={updateSubscriptionItem}
+                removeItem={removeSubscriptionItem}
+                clearItems={() => setSubscriptionCart([])}
+                checkout={checkoutSubscriptionItems}
+              />
+            </div>
+          </section>
+        ) : category === "Apple ID" ? (
           <section>
             <div className="mb-5 rounded-3xl border border-white/10 bg-[linear-gradient(135deg,#27272c,#14131a)] p-6 sm:p-8 overflow-hidden">
               <div className="flex items-center justify-between gap-5">
