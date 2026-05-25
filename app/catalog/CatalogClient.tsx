@@ -19,11 +19,6 @@ type Product = {
   image?: string | null;
 };
 
-type AppleCartItem = {
-  product: Product;
-  quantity: number;
-};
-
 type SubscriptionCartItem = {
   plan: SubscriptionPlan;
   quantity: number;
@@ -490,8 +485,6 @@ export default function CatalogClient() {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [toast, setToast] = useState("");
   const [appleRegion, setAppleRegion] = useState("Turkey");
-  const [appleCart, setAppleCart] = useState<AppleCartItem[]>([]);
-  const [appleEmail, setAppleEmail] = useState("");
   const [subscriptionCountry, setSubscriptionCountry] =
     useState<SubscriptionCountry>("Украина");
   const [subscriptionCart, setSubscriptionCart] = useState<SubscriptionCartItem[]>([]);
@@ -579,60 +572,7 @@ export default function CatalogClient() {
   }
 
   function addAppleProduct(product: Product) {
-    const productId = String(product.id);
-    const quantity = quantities[productId] || 1;
-
-    setAppleCart((items) => {
-      const existing = items.find(
-        (item) => String(item.product.id) === productId
-      );
-
-      if (existing) {
-        return items.map((item) =>
-          String(item.product.id) === productId
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      }
-
-      return [...items, { product, quantity }];
-    });
-
-    setToast(product.name + " x" + quantity + " добавлено в оформление");
-  }
-
-  function updateAppleItem(product: Product, quantity: number) {
-    setAppleCart((items) =>
-      items.map((item) =>
-        String(item.product.id) === String(product.id)
-          ? { ...item, quantity: Math.max(1, quantity) }
-          : item
-      )
-    );
-  }
-
-  function removeAppleItem(product: Product) {
-    setAppleCart((items) =>
-      items.filter((item) => String(item.product.id) !== String(product.id))
-    );
-  }
-
-  function checkoutAppleItems() {
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-
-    for (const item of appleCart) {
-      for (let index = 0; index < item.quantity; index += 1) {
-        cart.push({
-          ...item.product,
-          description:
-            item.product.description +
-            (appleEmail ? " Email: " + appleEmail : ""),
-        });
-      }
-    }
-
-    localStorage.setItem("cart", JSON.stringify(cart));
-    window.location.href = "/checkout";
+    addProductToCart(product);
   }
 
   function addSubscriptionPlan(plan: SubscriptionPlan) {
@@ -940,9 +880,8 @@ export default function CatalogClient() {
               ))}
             </div>
 
-            <div className="grid lg:grid-cols-[1fr_350px] gap-6">
-              <div>
-                {loading ? (
+            <div>
+              {loading ? (
                   <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
                       <div
@@ -976,17 +915,6 @@ export default function CatalogClient() {
                     ))}
                   </div>
                 )}
-              </div>
-
-              <AppleCheckoutPanel
-                items={appleCart}
-                email={appleEmail}
-                setEmail={setAppleEmail}
-                updateItem={updateAppleItem}
-                removeItem={removeAppleItem}
-                clearItems={() => setAppleCart([])}
-                checkout={checkoutAppleItems}
-              />
             </div>
           </section>
         ) : loading ? (
