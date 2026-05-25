@@ -873,6 +873,13 @@ export default function CatalogClient() {
                               </p>
                             </div>
 
+                            <a
+                              href={"/product/subscription-" + plan.id}
+                              className="mt-4 block rounded-xl border border-yellow-400/20 px-4 py-3 text-center text-sm font-black text-yellow-400 transition hover:border-yellow-400"
+                            >
+                              Подробнее
+                            </a>
+
                             <QuantityControls
                               product={product}
                               quantity={quantities["subscription-" + plan.id] || 1}
