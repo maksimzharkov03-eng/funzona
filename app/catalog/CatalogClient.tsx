@@ -48,11 +48,18 @@ function ProductImage({
     );
   }
 
+  const isGeneratedCover = src.startsWith("/product-covers/");
+
   return (
     <img
       src={src}
       alt={name}
-      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+      className={[
+        "h-full w-full transition duration-500",
+        isGeneratedCover
+          ? "object-contain p-2 group-hover:scale-[1.02]"
+          : "object-cover group-hover:scale-105",
+      ].join(" ")}
     />
   );
 }
@@ -229,7 +236,7 @@ export default function CatalogClient() {
                 className="group relative bg-gradient-to-b from-yellow-400/10 via-white/5 to-black border border-yellow-400/10 rounded-3xl p-3 hover:border-yellow-400 hover:-translate-y-1 transition duration-300 overflow-hidden"
               >
                 <div className="relative z-10">
-                  <div className="h-28 sm:h-32 rounded-2xl overflow-hidden mb-3 bg-yellow-400/10 flex items-center justify-center">
+                  <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-3 bg-black/70 border border-yellow-400/10 flex items-center justify-center">
                     <ProductImage src={product.image} name={product.name} />
                   </div>
 

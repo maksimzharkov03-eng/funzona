@@ -56,12 +56,17 @@ export default function CartClient() {
             key={`${item.id}-${index}`}
             className="bg-white/5 border border-yellow-400/20 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row gap-4 sm:gap-5 hover:border-yellow-400 transition"
           >
-            <div className="w-full sm:w-28 h-40 sm:h-28 rounded-2xl overflow-hidden bg-yellow-400/10 flex items-center justify-center shrink-0">
+            <div className="w-full sm:w-28 h-40 sm:h-28 rounded-2xl overflow-hidden bg-black/70 border border-yellow-400/10 flex items-center justify-center shrink-0">
               {item.image ? (
                 <img
                   src={item.image}
                   alt={item.name}
-                  className="w-full h-full object-cover"
+                  className={[
+                    "w-full h-full",
+                    String(item.image).startsWith("/product-covers/")
+                      ? "object-contain p-2"
+                      : "object-cover",
+                  ].join(" ")}
                 />
               ) : (
                 <span className="text-4xl">🎮</span>

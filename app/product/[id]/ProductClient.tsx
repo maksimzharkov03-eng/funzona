@@ -29,6 +29,10 @@ export default function ProductClient({ id }: { id: string }) {
     );
   }
 
+  const isGeneratedCover =
+    typeof product?.image === "string" &&
+    product.image.startsWith("/product-covers/");
+
   if (!product) {
     return (
       <main className="min-h-screen bg-black text-white px-6 py-20">
@@ -49,7 +53,7 @@ export default function ProductClient({ id }: { id: string }) {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white px-6 py-12 overflow-hidden">
+    <main className="min-h-screen bg-black text-white px-4 sm:px-6 py-10 sm:py-12 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,#ffd40022,transparent_35%)]" />
 
       <div className="relative z-10 max-w-7xl mx-auto">
@@ -57,14 +61,17 @@ export default function ProductClient({ id }: { id: string }) {
           ← Вернуться в каталог
         </a>
 
-        <div className="grid lg:grid-cols-2 gap-10 mt-10">
+        <div className="grid lg:grid-cols-2 gap-6 sm:gap-10 mt-8 sm:mt-10">
           <div className="bg-gradient-to-b from-yellow-400/10 to-white/5 border border-yellow-400/20 rounded-[2rem] p-5">
             <div className="h-[520px] rounded-[1.5rem] overflow-hidden bg-black flex items-center justify-center">
               {product.image ? (
                 <img
                   src={product.image}
                   alt={product.name}
-                  className="w-full h-full object-cover"
+                  className={[
+                    "w-full h-full",
+                    isGeneratedCover ? "object-contain p-3 sm:p-6" : "object-cover",
+                  ].join(" ")}
                 />
               ) : (
                 <div className="text-8xl">🎮</div>
@@ -72,12 +79,12 @@ export default function ProductClient({ id }: { id: string }) {
             </div>
           </div>
 
-          <div className="bg-white/5 border border-yellow-400/20 rounded-[2rem] p-8">
+          <div className="bg-white/5 border border-yellow-400/20 rounded-[2rem] p-5 sm:p-8">
             <div className="inline-flex bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 rounded-full px-4 py-2 font-black mb-6">
               {product.category}
             </div>
 
-            <h1 className="text-5xl md:text-6xl font-black">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black leading-tight">
               {product.name}
             </h1>
 
@@ -99,7 +106,7 @@ export default function ProductClient({ id }: { id: string }) {
 
             <div className="mt-10 bg-yellow-400 text-black rounded-3xl p-6">
               <p className="text-black/60 font-bold">Стоимость</p>
-              <p className="text-5xl font-black mt-2">{product.price}</p>
+              <p className="text-4xl sm:text-5xl font-black mt-2">{product.price}</p>
             </div>
 
             <AddToCartButton product={product} />
