@@ -2,6 +2,43 @@
 
 import { useEffect, useState } from "react";
 
+const categories = ["Подписки", "ChatGPT", "Apple ID", "Игры"];
+
+function resizeImage(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onerror = () => reject(new Error("Не удалось прочитать картинку"));
+    reader.onload = () => {
+      const image = new Image();
+
+      image.onerror = () => reject(new Error("Не удалось обработать картинку"));
+      image.onload = () => {
+        const maxSize = 900;
+        const ratio = Math.min(1, maxSize / Math.max(image.width, image.height));
+        const width = Math.round(image.width * ratio);
+        const height = Math.round(image.height * ratio);
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        if (!context) {
+          reject(new Error("Браузер не смог подготовить картинку"));
+          return;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        context.drawImage(image, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.86));
+      };
+
+      image.src = String(reader.result || "");
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function AdminProducts() {
   const [products, setProducts] = useState<any[]>([]);
 
@@ -10,11 +47,23 @@ export default function AdminProducts() {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
 
   async function loadProducts() {
-    const res = await fetch("/api/products");
-    const data = await res.json();
-    setProducts(data);
+    try {
+      const res = await fetch("/api/products", { cache: "no-store" });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(data?.error || "Не удалось загрузить товары");
+        return;
+      }
+
+      setProducts(Array.isArray(data) ? data : []);
+    } catch {
+      setMessage("Не удалось подключиться к API товаров");
+    }
   }
 
   useEffect(() => {
@@ -30,36 +79,80 @@ export default function AdminProducts() {
   }
 
   async function addProduct() {
-    if (!name || !price) {
-      alert("Заполни название и цену");
+    if (!name.trim() || !price.trim()) {
+      setMessage("Заполни название и цену");
       return;
     }
 
-    await fetch("/api/products", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name,
-        category,
-        price,
-        description,
-        image,
-      }),
-    });
+    setSaving(true);
+    setMessage("");
 
-    resetForm();
-    loadProducts();
+    try {
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          category,
+          price: price.trim(),
+          description: description.trim(),
+          image,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        setMessage(data?.error || "Товар не добавился. Проверь поля и базу данных.");
+        return;
+      }
+
+      resetForm();
+      setMessage("Товар добавлен в каталог.");
+      await loadProducts();
+    } catch {
+      setMessage("Товар не добавился: нет ответа от сервера.");
+    } finally {
+      setSaving(false);
+    }
   }
 
- async function deleteProduct(id: number) {
-  await fetch(`/api/products/${id}`, {
-    method: "DELETE",
-  });
+  async function deleteProduct(id: number) {
+    setMessage("");
 
-  loadProducts();
-}
+    try {
+      const res = await fetch(`/api/products/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setMessage(data?.error || "Не удалось удалить товар");
+        return;
+      }
+
+      setMessage("Товар удален.");
+      loadProducts();
+    } catch {
+      setMessage("Не удалось подключиться к API удаления");
+    }
+  }
+
+  async function handleImage(file?: File) {
+    if (!file) return;
+
+    setMessage("");
+
+    try {
+      const resized = await resizeImage(file);
+      setImage(resized);
+      setMessage("Картинка подготовлена.");
+    } catch (error: any) {
+      setMessage(error?.message || "Не удалось подготовить картинку");
+    }
+  }
 
   return (
     <section>
@@ -74,7 +167,7 @@ export default function AdminProducts() {
         />
 
         <input
-          placeholder="Цена, например 2100₽"
+          placeholder="Цена, например 2100 ₽"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
           className="bg-black border border-white/10 rounded-xl px-4 py-3"
@@ -85,10 +178,9 @@ export default function AdminProducts() {
           onChange={(e) => setCategory(e.target.value)}
           className="bg-black border border-white/10 rounded-xl px-4 py-3"
         >
-          <option>Подписки</option>
-          <option>ChatGPT</option>
-          <option>Apple ID</option>
-          <option>Игры</option>
+          {categories.map((item) => (
+            <option key={item}>{item}</option>
+          ))}
         </select>
 
         <input
@@ -101,27 +193,41 @@ export default function AdminProducts() {
         <input
           type="file"
           accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-
-            reader.onloadend = () => {
-              setImage(reader.result as string);
-            };
-
-            reader.readAsDataURL(file);
-          }}
+          onChange={(e) => handleImage(e.target.files?.[0])}
           className="bg-black border border-white/10 rounded-xl px-4 py-3"
         />
 
+        <input
+          placeholder="Или ссылка на картинку"
+          value={image.startsWith("data:") ? "Картинка загружена файлом" : image}
+          onChange={(e) => setImage(e.target.value)}
+          disabled={image.startsWith("data:")}
+          className="bg-black border border-white/10 rounded-xl px-4 py-3 disabled:opacity-60"
+        />
+
+        {image.startsWith("data:") ? (
+          <button
+            type="button"
+            onClick={() => setImage("")}
+            className="md:col-span-2 border border-yellow-400/30 text-yellow-400 py-3 rounded-xl font-black"
+          >
+            Убрать загруженную картинку
+          </button>
+        ) : null}
+
         <button
           onClick={addProduct}
-          className="md:col-span-2 bg-yellow-400 text-black py-4 rounded-xl font-black"
+          disabled={saving}
+          className="md:col-span-2 bg-yellow-400 text-black py-4 rounded-xl font-black disabled:opacity-50"
         >
-          Добавить товар / подписку
+          {saving ? "Добавляем..." : "Добавить товар / подписку"}
         </button>
+
+        {message ? (
+          <div className="md:col-span-2 rounded-2xl border border-yellow-400/20 bg-yellow-400/10 p-4 font-bold text-yellow-100">
+            {message}
+          </div>
+        ) : null}
       </div>
 
       <div className="grid md:grid-cols-3 gap-5">
