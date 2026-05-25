@@ -125,8 +125,7 @@ export default function CartClient() {
     }
 
     localStorage.removeItem("cart");
-    alert("Заказ оформлен!");
-    window.location.href = "/account";
+    window.location.href = "/support?order=" + data.id;
   }
 
   if (cart.length === 0) {
@@ -317,11 +316,11 @@ export default function CartClient() {
             disabled={loading || cart.length === 0}
             className="w-full rounded-2xl bg-[linear-gradient(135deg,#7c3aed,#ec4899)] px-5 py-5 text-xl font-black text-white shadow-2xl shadow-violet-900/30 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "Оформляем..." : "Оплатить " + formatRub(total)}
+            {loading ? "Оформляем..." : "Оформить заказ " + formatRub(total)}
           </button>
 
           <p className="text-center text-xs font-bold text-gray-500">
-            Все общение и выдача заказа будут внутри сайта.
+            После оформления тебя сразу перекинет в чат по этому заказу.
           </p>
         </div>
       </aside>

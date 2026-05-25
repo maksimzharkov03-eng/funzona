@@ -15,6 +15,7 @@ export default function SupportChat() {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [orderRedirect, setOrderRedirect] = useState(false);
   const listRef = useRef<HTMLDivElement | null>(null);
 
   async function loadMessages() {
@@ -55,6 +56,8 @@ export default function SupportChat() {
   }
 
   useEffect(() => {
+    setOrderRedirect(new URLSearchParams(window.location.search).has("order"));
+
     fetch("/api/me")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
@@ -105,6 +108,12 @@ export default function SupportChat() {
         </div>
         <p className="text-sm text-gray-400">Ответ появится прямо здесь.</p>
       </div>
+
+      {orderRedirect ? (
+        <div className="mb-4 rounded-2xl border border-yellow-400/30 bg-yellow-400/10 p-4 text-sm font-black text-yellow-200">
+          Заказ уже отправлен в этот чат. Админ видит состав заказа, сумму и твой комментарий.
+        </div>
+      ) : null}
 
       <div
         ref={listRef}
