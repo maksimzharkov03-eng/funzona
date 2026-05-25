@@ -3,6 +3,20 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+type Product = {
+  id: number | string;
+  name: string;
+  category: string;
+  description: string;
+  price: string;
+  image?: string | null;
+};
+
+type AppleCartItem = {
+  product: Product;
+  quantity: number;
+};
+
 const categories = [
   { name: "Все", icon: "✦", hint: "Витрина" },
   { name: "Подписки", icon: "▣", hint: "PS Plus" },
@@ -32,6 +46,34 @@ const quickCards = [
     icon: "◈",
   },
 ];
+
+const appleRegions = [
+  { key: "Turkey", label: "Турция", badge: "TR", color: "bg-red-500" },
+  { key: "USA", label: "США", badge: "US", color: "bg-blue-500" },
+  { key: "India", label: "Индия", badge: "IN", color: "bg-green-500" },
+];
+
+function formatRub(value: number) {
+  return new Intl.NumberFormat("ru-RU").format(value) + " ₽";
+}
+
+function priceToNumber(price: string) {
+  return Number(String(price).replace(/\D/g, "")) || 0;
+}
+
+function getAppleRegion(product: Product) {
+  if (product.name.includes("Turkey")) return "Turkey";
+  if (product.name.includes("USA")) return "USA";
+  if (product.name.includes("India")) return "India";
+  return "Turkey";
+}
+
+function getAppleNominal(product: Product) {
+  return product.name
+    .replace("Apple ID Turkey ", "")
+    .replace("Apple ID USA ", "")
+    .replace("Apple ID India ", "");
+}
 
 function ProductImage({
   src,
@@ -64,11 +106,50 @@ function ProductImage({
   );
 }
 
+function AppleGiftCard({ product }: { product: Product }) {
+  const region = appleRegions.find((item) => item.key === getAppleRegion(product)) || appleRegions[0];
+  const nominal = getAppleNominal(product);
+
+  return (
+    <div className="relative aspect-[1.05] overflow-hidden rounded-3xl bg-[linear-gradient(145deg,#3a3a3d,#1b1b20)] border border-white/10 p-4 shadow-2xl">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#ffffff22,transparent_34%)]" />
+      <div className="relative z-10 flex h-full flex-col">
+        <div className="flex items-start justify-between gap-3">
+          <span className="rounded-md bg-white px-2 py-1 text-[10px] font-black tracking-[0.18em] text-slate-700">
+            GIFT CARD
+          </span>
+          <div className="text-right">
+            <p className="text-2xl sm:text-3xl font-black text-white leading-none">
+              {nominal.replace(" ", "")}
+            </p>
+            <span className={region.color + " mt-2 inline-flex rounded-sm px-2 py-1 text-[10px] font-black text-white"}>
+              {region.badge}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex flex-1 items-center justify-center">
+          <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-[2rem] bg-white text-black flex items-center justify-center text-4xl font-black">
+            A
+          </div>
+        </div>
+
+        <div>
+          <p className="text-sm font-black text-white">iTunes Store</p>
+          <div className="mt-3 rounded-xl bg-white/15 px-3 py-2 text-[11px] font-black tracking-[0.24em] text-white/85">
+            ЭЛЕКТРОННЫЙ КЛЮЧ
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 type QuantityControlsProps = {
-  product: any;
+  product: Product;
   quantity: number;
   setQuantity: (productId: string, value: number) => void;
-  addToCart: (product: any) => void;
+  addToCart: (product: Product) => void;
 };
 
 function QuantityControls({
@@ -126,13 +207,145 @@ function QuantityControls({
   );
 }
 
+function AppleCheckoutPanel({
+  items,
+  email,
+  setEmail,
+  updateItem,
+  removeItem,
+  clearItems,
+  checkout,
+}: {
+  items: AppleCartItem[];
+  email: string;
+  setEmail: (value: string) => void;
+  updateItem: (product: Product, quantity: number) => void;
+  removeItem: (product: Product) => void;
+  clearItems: () => void;
+  checkout: () => void;
+}) {
+  const total = items.reduce(
+    (sum, item) => sum + priceToNumber(item.product.price) * item.quantity,
+    0
+  );
+
+  return (
+    <aside className="lg:sticky lg:top-28 h-fit rounded-3xl border border-violet-500/30 bg-[#131021] p-4 sm:p-5 shadow-2xl shadow-violet-950/40">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-xl font-black uppercase">Оформление</h2>
+        <button
+          type="button"
+          onClick={clearItems}
+          className="text-xs font-black text-gray-500 hover:text-yellow-400 transition"
+        >
+          Очистить
+        </button>
+      </div>
+
+      <div className="mt-6 space-y-5">
+        <section>
+          <div className="flex items-center gap-2 text-xs font-black uppercase text-gray-400">
+            <span className="rounded bg-violet-500/40 px-2 py-1 text-white">1</span>
+            Товары
+          </div>
+
+          <div className="mt-3 space-y-3">
+            {items.length === 0 ? (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-gray-400">
+                Выбери номинал Apple ID и нажми “В корзину”.
+              </div>
+            ) : (
+              items.map((item) => (
+                <div
+                  key={String(item.product.id)}
+                  className="grid grid-cols-[54px_1fr_auto] gap-3 rounded-2xl border border-white/10 bg-white/5 p-3"
+                >
+                  <div className="h-14 w-14 rounded-2xl bg-white text-black flex items-center justify-center text-2xl font-black">
+                    A
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="truncate font-black text-sm">{item.product.name}</h3>
+                    <p className="mt-1 text-xs text-gray-400">{item.product.price}</p>
+                    <div className="mt-2 grid grid-cols-[28px_34px_28px] gap-1">
+                      <button
+                        type="button"
+                        onClick={() => updateItem(item.product, Math.max(1, item.quantity - 1))}
+                        className="h-7 rounded-lg border border-white/10 text-white hover:bg-white/10"
+                      >
+                        -
+                      </button>
+                      <div className="h-7 rounded-lg bg-black/50 flex items-center justify-center text-sm font-black">
+                        {item.quantity}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => updateItem(item.product, item.quantity + 1)}
+                        className="h-7 rounded-lg bg-white/10 text-white hover:bg-white/20"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(item.product)}
+                    className="h-9 w-9 rounded-xl bg-red-500/10 text-red-300 hover:bg-red-500 hover:text-white transition"
+                    aria-label="Удалить"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
+        <section>
+          <div className="flex items-center gap-2 text-xs font-black uppercase text-gray-400">
+            <span className="rounded bg-violet-500/40 px-2 py-1 text-white">2</span>
+            Email для получения
+          </div>
+          <input
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="mail@example.com"
+            className="mt-3 w-full rounded-2xl border border-white/10 bg-white/8 px-4 py-4 outline-none focus:border-violet-400"
+          />
+        </section>
+
+        <div className="rounded-2xl border border-yellow-400/30 bg-yellow-400/10 p-4 text-sm font-black text-yellow-300">
+          Перед оплатой убедись, что указан правильный регион Apple ID.
+        </div>
+
+        <section>
+          <div className="flex items-center justify-between rounded-2xl border border-violet-500/25 bg-violet-500/10 p-4">
+            <span className="font-black uppercase text-gray-300">Итого</span>
+            <span className="text-2xl font-black">{formatRub(total)}</span>
+          </div>
+          <button
+            type="button"
+            onClick={checkout}
+            disabled={items.length === 0}
+            className="mt-3 w-full rounded-2xl bg-[linear-gradient(135deg,#7c3aed,#ec4899)] px-5 py-4 font-black text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Оплатить {formatRub(total)}
+          </button>
+        </section>
+      </div>
+    </aside>
+  );
+}
+
 export default function CatalogClient() {
   const searchParams = useSearchParams();
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [category, setCategory] = useState("Все");
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [toast, setToast] = useState("");
+  const [appleRegion, setAppleRegion] = useState("Turkey");
+  const [appleCart, setAppleCart] = useState<AppleCartItem[]>([]);
+  const [appleEmail, setAppleEmail] = useState("");
 
   useEffect(() => {
     const categoryFromUrl = searchParams.get("category");
@@ -163,6 +376,14 @@ export default function CatalogClient() {
     return products.filter((product) => product.category === category);
   }, [category, products]);
 
+  const appleProducts = useMemo(
+    () =>
+      products
+        .filter((product) => product.category === "Apple ID")
+        .filter((product) => getAppleRegion(product) === appleRegion),
+    [appleRegion, products]
+  );
+
   useEffect(() => {
     if (!toast) return;
 
@@ -177,7 +398,7 @@ export default function CatalogClient() {
     }));
   }
 
-  function addProductToCart(product: any) {
+  function addProductToCart(product: Product) {
     const productId = String(product.id);
     const quantity = quantities[productId] || 1;
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -188,6 +409,63 @@ export default function CatalogClient() {
 
     localStorage.setItem("cart", JSON.stringify(cart));
     setToast(product.name + " x" + quantity + " добавлено в корзину");
+  }
+
+  function addAppleProduct(product: Product) {
+    const productId = String(product.id);
+    const quantity = quantities[productId] || 1;
+
+    setAppleCart((items) => {
+      const existing = items.find(
+        (item) => String(item.product.id) === productId
+      );
+
+      if (existing) {
+        return items.map((item) =>
+          String(item.product.id) === productId
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      }
+
+      return [...items, { product, quantity }];
+    });
+
+    setToast(product.name + " x" + quantity + " добавлено в оформление");
+  }
+
+  function updateAppleItem(product: Product, quantity: number) {
+    setAppleCart((items) =>
+      items.map((item) =>
+        String(item.product.id) === String(product.id)
+          ? { ...item, quantity: Math.max(1, quantity) }
+          : item
+      )
+    );
+  }
+
+  function removeAppleItem(product: Product) {
+    setAppleCart((items) =>
+      items.filter((item) => String(item.product.id) !== String(product.id))
+    );
+  }
+
+  function checkoutAppleItems() {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+    for (const item of appleCart) {
+      for (let index = 0; index < item.quantity; index += 1) {
+        cart.push({
+          ...item.product,
+          description:
+            item.product.description +
+            (appleEmail ? " Email: " + appleEmail : ""),
+        });
+      }
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    window.location.href = "/checkout";
   }
 
   function selectCategory(item: string) {
@@ -228,7 +506,7 @@ export default function CatalogClient() {
             <div className="rounded-2xl border border-yellow-400/20 bg-white/5 px-4 py-3 w-fit">
               <p className="text-xs text-gray-500 font-black uppercase">В наличии</p>
               <p className="text-2xl font-black text-yellow-400">
-                {filteredProducts.length}
+                {category === "Apple ID" ? appleProducts.length : filteredProducts.length}
               </p>
             </div>
           </div>
@@ -299,7 +577,98 @@ export default function CatalogClient() {
           </div>
         </section>
 
-        {loading ? (
+        {category === "Apple ID" ? (
+          <section>
+            <div className="mb-5 rounded-3xl border border-white/10 bg-[linear-gradient(135deg,#27272c,#14131a)] p-6 sm:p-8 overflow-hidden">
+              <div className="flex items-center justify-between gap-5">
+                <div>
+                  <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-gray-300">
+                    Apple
+                  </div>
+                  <h2 className="mt-3 text-3xl sm:text-4xl font-black">
+                    iTunes & App Store
+                  </h2>
+                  <p className="mt-3 text-gray-400 font-bold">
+                    Пополнение кошелька App Store по регионам.
+                  </p>
+                </div>
+                <div className="hidden sm:flex h-24 w-24 rounded-[2rem] bg-white/10 text-white items-center justify-center text-5xl font-black">
+                  A
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-6 flex gap-3 overflow-x-auto pb-2">
+              {appleRegions.map((region) => (
+                <button
+                  key={region.key}
+                  type="button"
+                  onClick={() => setAppleRegion(region.key)}
+                  className={[
+                    "min-w-36 rounded-2xl border px-5 py-3 font-black transition",
+                    appleRegion === region.key
+                      ? "border-violet-500 bg-violet-600/30 text-white"
+                      : "border-white/10 bg-white/5 text-gray-300 hover:border-violet-400",
+                  ].join(" ")}
+                >
+                  <span className={region.color + " mr-2 inline-flex rounded px-2 py-1 text-xs text-white"}>
+                    {region.badge}
+                  </span>
+                  {region.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid lg:grid-cols-[1fr_350px] gap-6">
+              <div>
+                {loading ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
+                      <div
+                        key={item}
+                        className="h-80 rounded-3xl bg-white/5 border border-white/10 animate-pulse"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {appleProducts.map((product) => (
+                      <article key={String(product.id)} className="min-w-0">
+                        <AppleGiftCard product={product} />
+                        <div className="mt-3 px-1">
+                          <div className="flex items-end justify-between gap-2">
+                            <p className="text-xl sm:text-2xl font-black">
+                              {product.price}
+                            </p>
+                            <span className="text-xs font-black text-emerald-400">
+                              в наличии
+                            </span>
+                          </div>
+                          <QuantityControls
+                            product={product}
+                            quantity={quantities[String(product.id)] || 1}
+                            setQuantity={setProductQuantity}
+                            addToCart={addAppleProduct}
+                          />
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <AppleCheckoutPanel
+                items={appleCart}
+                email={appleEmail}
+                setEmail={setAppleEmail}
+                updateItem={updateAppleItem}
+                removeItem={removeAppleItem}
+                clearItems={() => setAppleCart([])}
+                checkout={checkoutAppleItems}
+              />
+            </div>
+          </section>
+        ) : loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((item) => (
               <div
@@ -323,7 +692,7 @@ export default function CatalogClient() {
             {filteredProducts.map((product) => (
               <a
                 href={"/product/" + product.id}
-                key={product.id}
+                key={String(product.id)}
                 className="group relative bg-gradient-to-b from-yellow-400/10 via-white/5 to-black border border-yellow-400/10 rounded-3xl p-3 hover:border-yellow-400 hover:-translate-y-1 transition duration-300 overflow-hidden"
               >
                 <div className="relative z-10">
