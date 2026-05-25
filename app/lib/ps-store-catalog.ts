@@ -79,12 +79,37 @@ function pickString(body: string, field: string) {
 }
 
 function pickImage(body: string) {
-  const master = body.match(
-    /"url":"(https:\/\/image\.api\.playstation\.com[^"]+?)"[\s\S]{0,300}?"type":"MASTER"/i
+  const media = Array.from(
+    body.matchAll(
+      /"type":"IMAGE","url":"(https:\/\/image\.api\.playstation\.com[^"]+?)","role":"([^"]+)"/gi
+    )
+  ).map((match) => ({
+    url: decodeJsonString(match[1]),
+    role: decodeJsonString(match[2]).toUpperCase(),
+  }));
+
+  const rolePriority = [
+    "GAMEHUB_COVER_ART",
+    "PORTRAIT_BANNER",
+    "MASTER",
+    "FOUR_BY_THREE_BANNER",
+    "EDITION_KEY_ART",
+    "SIXTEEN_BY_NINE_BANNER",
+  ];
+
+  for (const role of rolePriority) {
+    const image = media.find((item) => item.role === role);
+    if (image) return image.url;
+  }
+
+  const first = media.find(
+    (item) =>
+      !item.role.includes("BACKGROUND") &&
+      !item.role.includes("LOGO") &&
+      !item.role.includes("HERO")
   );
-  const first = body.match(/"url":"(https:\/\/image\.api\.playstation\.com[^"]+?)"/i);
-  const image = master?.[1] || first?.[1] || "";
-  return decodeJsonString(image);
+
+  return first?.url || media[0]?.url || "";
 }
 
 function parseStorePrice(value: string) {
