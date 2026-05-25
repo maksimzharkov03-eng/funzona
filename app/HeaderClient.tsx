@@ -25,7 +25,14 @@ export default function HeaderClient() {
           <a href="/faq" className="hover:text-yellow-400 transition">FAQ</a>
         </nav>
 
-        <div className="hidden md:block">
+        <div className="hidden md:flex items-center gap-3">
+          <a
+            href="/admin"
+            className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 font-black text-yellow-400 transition hover:border-yellow-400"
+          >
+            Админ
+          </a>
+
         {login ? (
           <a href="/account" className="hover:text-yellow-400 transition font-black">
             Кабинет
@@ -57,6 +64,7 @@ export default function HeaderClient() {
               ["Корзина", "/cart"],
               ["Поддержка", "/support"],
               ["FAQ", "/faq"],
+              ["Админ", "/admin"],
             ].map(([label, href]) => (
               <a
                 key={href}
