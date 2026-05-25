@@ -98,6 +98,7 @@ function createFreeKassaPaymentUrl(orderId: number, amountValue: number, userLog
   const merchantId = process.env.FREEKASSA_MERCHANT_ID;
   const secret = process.env.FREEKASSA_SECRET_1;
   const currency = process.env.FREEKASSA_CURRENCY || "RUB";
+  const paymentMethod = process.env.FREEKASSA_PAYMENT_METHOD || "42";
 
   if (!merchantId || !secret) return null;
 
@@ -112,6 +113,7 @@ function createFreeKassaPaymentUrl(orderId: number, amountValue: number, userLog
   url.searchParams.set("o", String(orderId));
   url.searchParams.set("s", signature);
   url.searchParams.set("currency", currency);
+  url.searchParams.set("i", paymentMethod);
   url.searchParams.set("lang", "ru");
   url.searchParams.set("us_login", userLogin.replace(/[^a-zA-Z0-9_-]/g, "_"));
 
