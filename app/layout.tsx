@@ -87,8 +87,47 @@ export default function RootLayout({
     </div>
   </div>
 
-  <div className="max-w-7xl mx-auto mt-12 pt-7 border-t border-white/10 text-gray-500 text-sm">
-    © 2026 FunZona. Все права защищены.
+  <div className="max-w-7xl mx-auto mt-12 border-t border-white/10 pt-7">
+    <div className="flex flex-col items-center justify-between gap-5 sm:flex-row">
+      <div className="flex items-center justify-center gap-3">
+        <a
+          href="https://t.me/Funzona_Psn"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Telegram канал FunZona"
+          title="Telegram канал"
+          className="flex h-12 w-12 items-center justify-center rounded-2xl border border-yellow-400/20 bg-white/5 text-lg font-black text-yellow-400 transition hover:border-yellow-400 hover:bg-yellow-400 hover:text-black"
+        >
+          TG
+        </a>
+
+        <a
+          href="https://t.me/FunZona_manager"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Telegram поддержка FunZona"
+          title="Telegram поддержка"
+          className="flex h-12 w-12 items-center justify-center rounded-2xl border border-yellow-400/20 bg-white/5 text-lg font-black text-yellow-400 transition hover:border-yellow-400 hover:bg-yellow-400 hover:text-black"
+        >
+          ?
+        </a>
+
+        <a
+          href="https://www.avito.ru/brands/d385dcfcd8583518f42b79cefb6ec156/all?sellerId=dc8e1aac44f9faeeda07c10050b086fa"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Avito FunZona"
+          title="Avito"
+          className="flex h-12 w-12 items-center justify-center rounded-2xl border border-yellow-400/20 bg-white/5 text-lg font-black text-yellow-400 transition hover:border-yellow-400 hover:bg-yellow-400 hover:text-black"
+        >
+          A
+        </a>
+      </div>
+
+      <p className="text-sm text-gray-500">
+        © 2026 FunZona. Все права защищены.
+      </p>
+    </div>
   </div>
 </footer>
       </body>
