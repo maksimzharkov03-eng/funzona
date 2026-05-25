@@ -187,8 +187,7 @@ export default function GamesPage() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl md:text-7xl xl:text-8xl font-black leading-[0.95]">
-              Игры PS4 и PS5{" "}
-              <span className="text-yellow-400">с быстрой выдачей</span>
+              Игры PS4 и PS5
             </h1>
 
             <p className="text-gray-300 mt-5 sm:mt-6 max-w-3xl text-base sm:text-lg md:text-xl leading-7 sm:leading-8">
