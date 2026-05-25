@@ -6,6 +6,38 @@ function md5(value: string) {
   return crypto.createHash("md5").update(value).digest("hex");
 }
 
+function buildPaidOrderTelegramText(order: {
+  id: number;
+  productName: string;
+  productPrice: string;
+  userLogin: string | null;
+  telegram: string;
+  payment: string;
+  comment: string | null;
+}) {
+  return (
+    "✅ Оплачен заказ FunZona\n\n" +
+    "🆔 Заказ #" +
+    order.id +
+    "\n" +
+    "📦 " +
+    order.productName +
+    "\n" +
+    "💰 Итого: " +
+    order.productPrice +
+    "\n\n" +
+    (order.comment ? "🧾 " + order.comment + "\n\n" : "") +
+    "👤 Логин клиента: " +
+    (order.userLogin || "не указан") +
+    "\n" +
+    "💬 Связь: " +
+    (order.telegram || "Чат на сайте") +
+    "\n" +
+    "💳 Оплата: " +
+    (order.payment || "Не указано")
+  );
+}
+
 function priceToCents(price: string) {
   const normalized = String(price)
     .replace(/\s/g, "")
@@ -183,20 +215,7 @@ async function handleNotify(req: Request) {
     });
   }
 
-  await sendOwnerTelegram(
-    "✅ Оплачен заказ FunZona\n\n" +
-      "🆔 Заказ #" +
-      updated.id +
-      "\n" +
-      "💰 Сумма: " +
-      updated.productPrice +
-      "\n" +
-      "👤 Клиент: " +
-      (updated.userLogin || "не указан") +
-      "\n" +
-      "📦 " +
-      updated.productName
-  );
+  await sendOwnerTelegram(buildPaidOrderTelegramText(updated));
 
   return new NextResponse("YES", {
     status: 200,
