@@ -206,7 +206,7 @@ export default function AccountPage() {
           </section>
         ) : (
           <div className="space-y-4">
-            {orders.map((order) => (
+            {orders.map((order, index) => (
               <article
                 key={order.id}
                 className="rounded-3xl border border-yellow-400/15 bg-white/[0.05] p-5 transition hover:border-yellow-400/40"
@@ -215,7 +215,7 @@ export default function AccountPage() {
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-3">
                       <p className="text-xl font-black text-yellow-400">
-                        Заказ #{order.id}
+                        Заказ {orders.length - index}
                       </p>
                       <span className={"rounded-full border px-3 py-1 text-xs font-black " + statusClass(order.status)}>
                         {order.status}
