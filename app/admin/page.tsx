@@ -1,12 +1,23 @@
 "use client";
-import AdminGames from "./AdminGames";
+
 import { useEffect, useState } from "react";
-import AdminProducts from "./AdminProducts";
 import AdminChat from "./AdminChat";
+import AdminGames from "./AdminGames";
+import AdminProducts from "./AdminProducts";
+
+type AdminTab = "orders" | "chat" | "products" | "games";
+
+const tabs: { id: AdminTab; label: string; hint: string }[] = [
+  { id: "orders", label: "Заказы", hint: "Статусы и оплата" },
+  { id: "chat", label: "Чат", hint: "Клиенты" },
+  { id: "products", label: "Товары и подписки", hint: "Каталог" },
+  { id: "games", label: "Игры", hint: "PS Store" },
+];
 
 export default function AdminPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [filter, setFilter] = useState("Все");
+  const [activeTab, setActiveTab] = useState<AdminTab>("orders");
 
   const statuses = [
     "Ожидает оплаты",
@@ -39,21 +50,11 @@ export default function AdminPage() {
   }
 
   function getStatusClass(status: string) {
-    if (status === "Ожидает оплаты")
-      return "bg-yellow-400 text-black";
-
-    if (status === "Оплачен")
-      return "bg-blue-500 text-white";
-
-    if (status === "В работе")
-      return "bg-purple-500 text-white";
-
-    if (status === "Выдан")
-      return "bg-green-500 text-white";
-
-    if (status === "Отменен")
-      return "bg-red-500 text-white";
-
+    if (status === "Ожидает оплаты") return "bg-yellow-400 text-black";
+    if (status === "Оплачен") return "bg-blue-500 text-white";
+    if (status === "В работе") return "bg-purple-500 text-white";
+    if (status === "Выдан") return "bg-green-500 text-white";
+    if (status === "Отменен") return "bg-red-500 text-white";
     return "bg-gray-500 text-white";
   }
 
@@ -86,10 +87,7 @@ export default function AdminPage() {
         order.status === "Выдан"
     )
     .reduce((sum, order) => {
-      return (
-        sum +
-        Number(String(order.productPrice || "0").replace(/\D/g, ""))
-      );
+      return sum + Number(String(order.productPrice || "0").replace(/\D/g, ""));
     }, 0);
 
   const filteredOrders =
@@ -98,176 +96,179 @@ export default function AdminPage() {
       : orders.filter((order) => order.status === filter);
 
   return (
-    <main className="min-h-screen bg-black text-white px-6 py-10">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-5xl font-black text-yellow-400 mb-8">
-          Админка FunZona
-        </h1>
-
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-5 mb-10">
-          <div className="bg-white/5 border border-yellow-400/20 rounded-3xl p-6">
-            <p className="text-gray-400">Всего заказов</p>
-            <h3 className="text-4xl font-black text-yellow-400 mt-3">
-              {totalOrders}
-            </h3>
+    <main className="min-h-screen bg-black px-4 py-8 text-white sm:px-6 sm:py-10">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="mb-3 text-sm font-black uppercase text-yellow-400">
+              FunZona Control
+            </p>
+            <h1 className="text-4xl font-black text-yellow-400 sm:text-5xl">
+              Админ-панель
+            </h1>
           </div>
 
-          <div className="bg-white/5 border border-blue-400/20 rounded-3xl p-6">
-            <p className="text-gray-400">Оплачено</p>
-            <h3 className="text-4xl font-black text-blue-400 mt-3">
-              {paidOrders}
-            </h3>
-          </div>
+          <a
+            href="/catalog"
+            className="w-fit rounded-2xl border border-yellow-400/30 px-5 py-3 font-black transition hover:border-yellow-400"
+          >
+            Открыть сайт
+          </a>
+        </div>
 
-          <div className="bg-white/5 border border-yellow-400/20 rounded-3xl p-6">
-            <p className="text-gray-400">Ожидают</p>
-            <h3 className="text-4xl font-black text-yellow-400 mt-3">
-              {pendingOrders}
-            </h3>
+        <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
+          <div className="rounded-2xl border border-yellow-400/20 bg-white/5 p-4">
+            <p className="text-sm text-gray-400">Всего</p>
+            <h3 className="mt-2 text-3xl font-black text-yellow-400">{totalOrders}</h3>
           </div>
-
-          <div className="bg-white/5 border border-green-400/20 rounded-3xl p-6">
-            <p className="text-gray-400">Выдано</p>
-            <h3 className="text-4xl font-black text-green-400 mt-3">
-              {completedOrders}
-            </h3>
+          <div className="rounded-2xl border border-blue-400/20 bg-white/5 p-4">
+            <p className="text-sm text-gray-400">Оплачено</p>
+            <h3 className="mt-2 text-3xl font-black text-blue-400">{paidOrders}</h3>
           </div>
-
-          <div className="bg-white/5 border border-red-400/20 rounded-3xl p-6">
-            <p className="text-gray-400">Отменено</p>
-            <h3 className="text-4xl font-black text-red-400 mt-3">
-              {cancelledOrders}
-            </h3>
+          <div className="rounded-2xl border border-yellow-400/20 bg-white/5 p-4">
+            <p className="text-sm text-gray-400">Ожидают</p>
+            <h3 className="mt-2 text-3xl font-black text-yellow-400">{pendingOrders}</h3>
+          </div>
+          <div className="rounded-2xl border border-green-400/20 bg-white/5 p-4">
+            <p className="text-sm text-gray-400">Выдано</p>
+            <h3 className="mt-2 text-3xl font-black text-green-400">{completedOrders}</h3>
+          </div>
+          <div className="col-span-2 rounded-2xl bg-yellow-400 p-4 text-black lg:col-span-1">
+            <p className="text-sm font-bold text-black/60">Оборот</p>
+            <h3 className="mt-2 text-3xl font-black">{totalRevenue} ₽</h3>
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-yellow-400 to-yellow-300 text-black rounded-3xl p-8 mb-10">
-          <p className="font-bold text-black/60">
-            Оборот по оплаченным заказам
-          </p>
-
-          <h2 className="text-5xl font-black mt-3">
-            {totalRevenue} ₽
-          </h2>
-        </div>
-
-        <AdminChat />
-
-        <h2 className="text-3xl font-black mb-5">
-          Заказы
-        </h2>
-
-        <div className="flex flex-wrap gap-3 mb-8">
-          {["Все", ...statuses].map((status) => (
+        <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {tabs.map((tab) => (
             <button
-              key={status}
-              onClick={() => setFilter(status)}
-              className={`px-5 py-3 rounded-xl font-black border transition ${
-                filter === status
-                  ? "bg-yellow-400 text-black border-yellow-400"
-                  : "bg-white/5 text-gray-300 border-yellow-400/20 hover:border-yellow-400"
-              }`}
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={
+                "rounded-2xl border p-4 text-left transition " +
+                (activeTab === tab.id
+                  ? "border-yellow-400 bg-yellow-400 text-black"
+                  : "border-yellow-400/20 bg-white/5 hover:border-yellow-400")
+              }
             >
-              {status}
+              <span className="block text-xl font-black">{tab.label}</span>
+              <span className={activeTab === tab.id ? "mt-1 block text-sm text-black/60" : "mt-1 block text-sm text-gray-400"}>
+                {tab.hint}
+              </span>
             </button>
           ))}
         </div>
 
-        {filteredOrders.length === 0 ? (
-          <p className="text-gray-400">
-            Заказов пока нет
-          </p>
-        ) : (
-          <div className="space-y-5">
-            {filteredOrders.map((order) => (
-              <div
-                key={order.id}
-                className="bg-white/5 border border-yellow-400/20 rounded-3xl p-6"
-              >
-                <div className="flex justify-between gap-6 flex-col lg:flex-row">
-                  <div>
-                    <p className="text-yellow-400 font-black text-xl">
-                      Заказ #{order.id}
-                    </p>
+        {activeTab === "orders" ? (
+          <section className="rounded-3xl border border-yellow-400/20 bg-white/5 p-4 sm:p-6">
+            <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-sm font-black uppercase text-yellow-400">Заказы</p>
+                <h2 className="text-3xl font-black">Управление заказами</h2>
+              </div>
 
-                    <p className="text-gray-400 mt-3">
-                      Дата:{" "}
-                      {new Date(order.createdAt).toLocaleString()}
-                    </p>
+              <div className="flex flex-wrap gap-2">
+                {["Все", ...statuses].map((status) => (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => setFilter(status)}
+                    className={
+                      "rounded-xl border px-4 py-3 text-sm font-black transition " +
+                      (filter === status
+                        ? "border-yellow-400 bg-yellow-400 text-black"
+                        : "border-yellow-400/20 bg-black text-gray-300 hover:border-yellow-400")
+                    }
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-                    <p className="text-gray-400">
-                      Telegram: {order.telegram}
-                    </p>
+            {filteredOrders.length === 0 ? (
+              <div className="rounded-3xl border border-white/10 bg-black p-8 text-center text-gray-400">
+                Заказов пока нет
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredOrders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="rounded-3xl border border-white/10 bg-black p-5"
+                  >
+                    <div className="flex flex-col justify-between gap-5 lg:flex-row">
+                      <div>
+                        <p className="text-xl font-black text-yellow-400">
+                          Заказ #{order.id}
+                        </p>
+                        <p className="mt-3 text-gray-400">
+                          Дата: {new Date(order.createdAt).toLocaleString()}
+                        </p>
+                        <p className="text-gray-400">Telegram: {order.telegram}</p>
+                        <p className="text-gray-400">Оплата: {order.payment}</p>
+                        <p className="text-gray-400">
+                          Комментарий: {order.comment || "—"}
+                        </p>
 
-                    <p className="text-gray-400">
-                      Оплата: {order.payment}
-                    </p>
+                        <div className="mt-5 border-t border-white/10 pt-5">
+                          <p className="text-lg font-bold text-white">
+                            {order.productName || "Товар не указан"}
+                          </p>
+                          <p className="mt-1 font-black text-yellow-400">
+                            {order.productPrice || "0 ₽"}
+                          </p>
+                        </div>
+                      </div>
 
-                    <p className="text-gray-400">
-                      Комментарий: {order.comment || "—"}
-                    </p>
-
-                    <div className="mt-5 border-t border-white/10 pt-5">
-                      <p className="text-white font-bold text-lg">
-                        {order.productName || "Товар не указан"}
-                      </p>
-
-                      <p className="text-yellow-400 font-black mt-1">
-                        {order.productPrice || "0 ₽"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="min-w-[260px]">
-                    <p className="text-gray-400 mb-4">
-                      Статус заказа
-                    </p>
-
-                    <details className="group">
-                      <summary
-                        className={`list-none cursor-pointer rounded-2xl px-5 py-4 font-black flex items-center justify-between transition ${getStatusClass(
-                          order.status
-                        )}`}
-                      >
-                        <span>{order.status}</span>
-
-                        <span className="group-open:rotate-180 transition">
-                          ▼
-                        </span>
-                      </summary>
-
-                      <div className="mt-3 space-y-2">
-                        {statuses.map((status) => (
-                          <button
-                            key={status}
-                            onClick={(e) => {
-                              updateStatus(order.id, status);
-
-                              const details = e.currentTarget.closest(
-                                "details"
-                              ) as HTMLDetailsElement;
-
-                              if (details) {
-                                details.open = false;
-                              }
-                            }}
-                            className={`w-full rounded-xl py-3 font-black transition ${getStatusClass(
-                              status
+                      <div className="min-w-[260px]">
+                        <p className="mb-3 text-gray-400">Статус заказа</p>
+                        <details className="group">
+                          <summary
+                            className={`flex cursor-pointer list-none items-center justify-between rounded-2xl px-5 py-4 font-black transition ${getStatusClass(
+                              order.status
                             )}`}
                           >
-                            {status}
-                          </button>
-                        ))}
+                            <span>{order.status}</span>
+                            <span className="transition group-open:rotate-180">▼</span>
+                          </summary>
+
+                          <div className="mt-3 space-y-2">
+                            {statuses.map((status) => (
+                              <button
+                                key={status}
+                                type="button"
+                                onClick={(event) => {
+                                  updateStatus(order.id, status);
+
+                                  const details = event.currentTarget.closest(
+                                    "details"
+                                  ) as HTMLDetailsElement;
+
+                                  if (details) details.open = false;
+                                }}
+                                className={`w-full rounded-xl py-3 font-black transition ${getStatusClass(
+                                  status
+                                )}`}
+                              >
+                                {status}
+                              </button>
+                            ))}
+                          </div>
+                        </details>
                       </div>
-                    </details>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-<AdminProducts />
-<AdminGames />
+            )}
+          </section>
+        ) : null}
+
+        {activeTab === "chat" ? <AdminChat /> : null}
+        {activeTab === "products" ? <AdminProducts /> : null}
+        {activeTab === "games" ? <AdminGames /> : null}
       </div>
     </main>
   );

@@ -6,7 +6,7 @@ export default function AdminProducts() {
   const [products, setProducts] = useState<any[]>([]);
 
   const [name, setName] = useState("");
-  const [category, setCategory] = useState("PlayStation");
+  const [category, setCategory] = useState("Подписки");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState("");
@@ -23,7 +23,7 @@ export default function AdminProducts() {
 
   function resetForm() {
     setName("");
-    setCategory("PlayStation");
+    setCategory("Подписки");
     setPrice("");
     setDescription("");
     setImage("");
@@ -62,8 +62,8 @@ export default function AdminProducts() {
 }
 
   return (
-    <section className="mt-12">
-      <h2 className="text-3xl font-black mb-5">Товары</h2>
+    <section>
+      <h2 className="text-3xl font-black mb-5">Товары и подписки</h2>
 
       <div className="bg-white/5 border border-yellow-400/20 rounded-3xl p-6 mb-8 grid md:grid-cols-2 gap-4">
         <input
@@ -85,10 +85,10 @@ export default function AdminProducts() {
           onChange={(e) => setCategory(e.target.value)}
           className="bg-black border border-white/10 rounded-xl px-4 py-3"
         >
-          <option>PlayStation</option>
+          <option>Подписки</option>
           <option>ChatGPT</option>
           <option>Apple ID</option>
-          <option>Игровые товары</option>
+          <option>Игры</option>
         </select>
 
         <input
@@ -120,7 +120,7 @@ export default function AdminProducts() {
           onClick={addProduct}
           className="md:col-span-2 bg-yellow-400 text-black py-4 rounded-xl font-black"
         >
-          Добавить товар
+          Добавить товар / подписку
         </button>
       </div>
 
