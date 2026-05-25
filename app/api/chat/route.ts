@@ -19,6 +19,21 @@ function cleanText(value: unknown) {
   return String(value || "").trim().slice(0, 2000);
 }
 
+function hideClientOrderNumber(message: any) {
+  if (message.sender === "system") return null;
+
+  const text = String(message.text || "");
+
+  if (/^Оплата по заказу #\d+ получена\. Заказ передан в работу\.?$/.test(text)) {
+    return {
+      ...message,
+      text: "Оплата получена. Заказ передан в работу.",
+    };
+  }
+
+  return message;
+}
+
 export async function GET(req: Request) {
   const payload = await getPayload();
 
@@ -86,6 +101,10 @@ export async function GET(req: Request) {
       },
       data: { readByUser: true },
     });
+  }
+
+  if (!isAdmin) {
+    return NextResponse.json(messages.map(hideClientOrderNumber).filter(Boolean));
   }
 
   return NextResponse.json(messages);

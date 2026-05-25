@@ -159,10 +159,7 @@ async function handleNotify(req: Request) {
         {
           userLogin: updated.userLogin,
           sender: "admin",
-          text:
-            "Оплата по заказу #" +
-            updated.id +
-            " получена. Заказ передан в работу.",
+          text: "Оплата получена. Заказ передан в работу.",
           readByAdmin: true,
           readByUser: false,
         },
