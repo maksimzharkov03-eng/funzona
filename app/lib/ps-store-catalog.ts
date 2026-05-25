@@ -61,9 +61,6 @@ const skipWords = [
   "coins",
   "token",
   "season pass",
-  "pack",
-  "bundle pack",
-  "starter pack",
   "дополнение",
   "демо",
   "пробная",
@@ -75,7 +72,6 @@ const skipWords = [
   "монет",
   "очков",
   "жетон",
-  "набор",
 ];
 
 function decodeJsonString(value: string) {
@@ -177,13 +173,18 @@ function normalizePlatform(body: string) {
     platforms.add(decodeJsonString(match[1]).toUpperCase());
   }
 
-  const hasPS4 = Array.from(platforms).some((platform) => platform.includes("PS4"));
-  const hasPS5 = Array.from(platforms).some((platform) => platform.includes("PS5"));
+  const upperBody = body.toUpperCase();
+  const hasPS4 =
+    Array.from(platforms).some((platform) => platform.includes("PS4")) ||
+    /-CUSA[A-Z0-9_]/.test(upperBody);
+  const hasPS5 =
+    Array.from(platforms).some((platform) => platform.includes("PS5")) ||
+    /-PPSA[A-Z0-9_]/.test(upperBody);
 
   if (hasPS4 && hasPS5) return "PS4/PS5";
   if (hasPS4) return "PS4";
   if (hasPS5) return "PS5";
-  return "";
+  return "PS4/PS5";
 }
 
 function shouldSkipProduct(product: ParsedProduct) {
@@ -237,6 +238,8 @@ function parseProducts(html: string) {
   const products: ParsedProduct[] = [];
   const productRegex =
     /"Product:([^"\\]+?):([^"\\]+?)":\{([\s\S]*?)(?=,"Product:|,"ROOT_QUERY|<\/script>)/g;
+  const conceptRegex =
+    /"Concept:([^"\\]+?):([^"\\]+?)":\{([\s\S]*?)(?=,"Concept:|,"Product:|,"ROOT_QUERY|<\/script>)/g;
 
   for (const match of html.matchAll(productRegex)) {
     const body = match[3];
@@ -258,7 +261,33 @@ function parseProducts(html: string) {
     });
   }
 
-  return products.filter((product) => product.name);
+  for (const match of html.matchAll(conceptRegex)) {
+    const body = match[3];
+    const discountedPrice = pickString(body, "discountedPrice");
+    const basePrice = pickString(body, "basePrice");
+    const price = parseStorePrice(discountedPrice || basePrice);
+
+    if (!price) continue;
+
+    products.push({
+      id: match[1] + ":" + match[2],
+      name: pickString(body, "name"),
+      image: pickImage(body),
+      platform: normalizePlatform(body),
+      classification: "FULL_GAME",
+      localizedClassification: "Игра",
+      price,
+      basePrice: parseStorePrice(basePrice),
+    });
+  }
+
+  const unique = new Map<string, ParsedProduct>();
+
+  for (const product of products.filter((item) => item.name)) {
+    if (!unique.has(product.id)) unique.set(product.id, product);
+  }
+
+  return Array.from(unique.values());
 }
 
 function parseBrowseTotalPages(html: string) {
@@ -272,12 +301,23 @@ function parseBrowseTotalPages(html: string) {
     pages.add(Number(match[1]));
   }
 
+  for (const match of html.matchAll(
+    /"pageInfo":\{"__typename":"PageInfo","totalCount":(\d+),"offset":\d+,"size":(\d+)/g
+  )) {
+    const totalCount = Number(match[1]);
+    const pageSize = Number(match[2]);
+
+    if (Number.isFinite(totalCount) && Number.isFinite(pageSize) && pageSize > 0) {
+      pages.add(Math.ceil(totalCount / pageSize));
+    }
+  }
+
   const detected = Math.max(
     1,
     ...Array.from(pages).filter((page) => Number.isFinite(page) && page > 0)
   );
 
-  return Math.min(Math.max(detected, maxBrowsePagesPerRegion), maxBrowsePagesPerRegion);
+  return Math.min(detected > 1 ? detected : maxBrowsePagesPerRegion, maxBrowsePagesPerRegion);
 }
 
 function toMarketplaceGame(
@@ -331,19 +371,23 @@ function getBrowseUrl(region: StoreRegion, page: number) {
 }
 
 async function fetchBrowsePage(region: StoreRegion, page: number): Promise<StorePage> {
-  const response = await fetch(getBrowseUrl(region, page), {
-    headers: {
-      "accept-language": region.locale,
-      "user-agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125 Safari/537.36",
-    },
-    next: { revalidate: cacheSeconds },
-  });
+  try {
+    const response = await fetch(getBrowseUrl(region, page), {
+      headers: {
+        "accept-language": region.locale,
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125 Safari/537.36",
+      },
+      next: { revalidate: cacheSeconds },
+    });
 
-  if (!response.ok) return { html: "", products: [] };
+    if (!response.ok) return { html: "", products: [] };
 
-  const html = await response.text();
-  return { html, products: parseProducts(html) };
+    const html = await response.text();
+    return { html, products: parseProducts(html) };
+  } catch {
+    return { html: "", products: [] };
+  }
 }
 
 async function runInBatches<T, R>(
@@ -398,6 +442,6 @@ async function loadPlayStationStoreCatalog() {
 
 export const getPlayStationStoreCatalog = unstable_cache(
   loadPlayStationStoreCatalog,
-  ["ps-store-full-browse-catalog-v1"],
+  ["ps-store-full-browse-catalog-v2"],
   { revalidate: cacheSeconds }
 );
