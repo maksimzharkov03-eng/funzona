@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import {
   calculateRubPrice,
   roundTryPrice,
@@ -340,7 +341,7 @@ async function fetchRegionCatalog(region: StoreRegion) {
   return Array.from(games.values()).slice(0, maxGamesPerRegion);
 }
 
-export async function getPlayStationStoreCatalog() {
+async function loadPlayStationStoreCatalog() {
   try {
     const catalogs = await Promise.all(regions.map((region) => fetchRegionCatalog(region)));
     return catalogs.flat();
@@ -349,3 +350,9 @@ export async function getPlayStationStoreCatalog() {
     return [];
   }
 }
+
+export const getPlayStationStoreCatalog = unstable_cache(
+  loadPlayStationStoreCatalog,
+  ["ps-store-catalog-v8"],
+  { revalidate: cacheSeconds }
+);

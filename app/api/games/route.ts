@@ -4,6 +4,10 @@ import { storeGames } from "@/app/data/ps-store-games";
 import { getPlayStationStoreCatalog } from "@/app/lib/ps-store-catalog";
 import { NextResponse } from "next/server";
 
+const apiCacheHeaders = {
+  "Cache-Control": "public, s-maxage=21600, stale-while-revalidate=86400",
+};
+
 export async function GET() {
   try {
     const storeCatalog = await getPlayStationStoreCatalog();
@@ -22,10 +26,10 @@ export async function GET() {
         Number(game.rubPrice) > 0
     );
 
-    return NextResponse.json([...baseCatalog, ...customGames]);
+    return NextResponse.json([...baseCatalog, ...customGames], { headers: apiCacheHeaders });
   } catch (error) {
     console.log("GAME LOAD ERROR:", error);
-    return NextResponse.json(storeGames.length > 0 ? storeGames : demoGames);
+    return NextResponse.json(storeGames.length > 0 ? storeGames : demoGames, { headers: apiCacheHeaders });
   }
 }
 

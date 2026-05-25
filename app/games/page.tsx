@@ -83,11 +83,22 @@ export default function GamesPage() {
   useEffect(() => {
     async function loadGames() {
       try {
-        const res = await fetch("/api/games", { cache: "no-store" });
+        const cached = sessionStorage.getItem("funzona-games-cache");
+
+        if (cached) {
+          const cachedGames = JSON.parse(cached);
+          if (Array.isArray(cachedGames) && cachedGames.length > 0) {
+            setGames(cachedGames);
+            setLoading(false);
+          }
+        }
+
+        const res = await fetch("/api/games");
         const data = await res.json();
 
         if (Array.isArray(data) && data.length > 0) {
           setGames(data);
+          sessionStorage.setItem("funzona-games-cache", JSON.stringify(data));
         }
       } catch {
         setGames(storeGames);
