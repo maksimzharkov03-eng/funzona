@@ -18,15 +18,18 @@ export async function POST(req: Request) {
     );
   }
 
+  const role = user.role === "admin" ? "admin" : "user";
+
   const token = await createToken({
     id: user.id,
     login: user.login,
-    role: user.login === "admin" ? "admin" : "user",
+    role,
   });
 
   const response = NextResponse.json({
     id: user.id,
     login: user.login,
+    role,
   });
 
   response.cookies.set("token", token, {

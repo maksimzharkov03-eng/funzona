@@ -36,6 +36,7 @@ export default function LoginPage() {
       }
 
       localStorage.setItem("userLogin", data.login);
+      localStorage.setItem("userRole", data.role || "user");
 
       window.location.href = "/account";
     } catch {

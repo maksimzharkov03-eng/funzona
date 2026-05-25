@@ -4,13 +4,31 @@ import { useEffect, useState } from "react";
 
 export default function HeaderClient() {
   const [login, setLogin] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     setLogin(localStorage.getItem("userLogin"));
+
+    fetch("/api/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data) {
+          setRole(null);
+          localStorage.removeItem("userRole");
+          return;
+        }
+
+        setLogin(data.login || null);
+        setRole(data.role || null);
+        localStorage.setItem("userRole", data.role || "user");
+      })
+      .catch(() => {
+        setRole(null);
+      });
   }, []);
 
-  const isAdmin = login === "admin";
+  const isAdmin = role === "admin";
 
   return (
     <header className="sticky top-0 z-50 border-b border-yellow-400/10 bg-black/70 backdrop-blur-xl">

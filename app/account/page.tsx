@@ -30,6 +30,7 @@ export default function AccountPage() {
     });
 
     localStorage.removeItem("userLogin");
+    localStorage.removeItem("userRole");
 
     window.location.href = "/login";
   }
