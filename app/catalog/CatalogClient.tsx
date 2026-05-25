@@ -64,11 +64,75 @@ function ProductImage({
   );
 }
 
+type QuantityControlsProps = {
+  product: any;
+  quantity: number;
+  setQuantity: (productId: string, value: number) => void;
+  addToCart: (product: any) => void;
+};
+
+function QuantityControls({
+  product,
+  quantity,
+  setQuantity,
+  addToCart,
+}: QuantityControlsProps) {
+  const productId = String(product.id);
+
+  return (
+    <div className="mt-4 space-y-2">
+      <div className="grid grid-cols-[36px_1fr_36px] items-center gap-2">
+        <button
+          type="button"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setQuantity(productId, Math.max(1, quantity - 1));
+          }}
+          className="h-9 rounded-xl border border-yellow-400/25 bg-white/5 text-yellow-400 font-black hover:bg-yellow-400 hover:text-black transition"
+          aria-label="Уменьшить количество"
+        >
+          -
+        </button>
+        <div className="h-9 rounded-xl border border-yellow-400/15 bg-black/60 flex items-center justify-center font-black">
+          {quantity}
+        </div>
+        <button
+          type="button"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setQuantity(productId, quantity + 1);
+          }}
+          className="h-9 rounded-xl bg-yellow-400 text-black font-black hover:bg-yellow-300 transition"
+          aria-label="Увеличить количество"
+        >
+          +
+        </button>
+      </div>
+
+      <button
+        type="button"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          addToCart(product);
+        }}
+        className="w-full h-10 rounded-xl bg-yellow-400 text-black text-sm font-black hover:bg-yellow-300 transition"
+      >
+        В корзину
+      </button>
+    </div>
+  );
+}
+
 export default function CatalogClient() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<any[]>([]);
   const [category, setCategory] = useState("Все");
   const [loading, setLoading] = useState(true);
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [toast, setToast] = useState("");
 
   useEffect(() => {
     const categoryFromUrl = searchParams.get("category");
@@ -98,6 +162,33 @@ export default function CatalogClient() {
     if (category === "Все") return products;
     return products.filter((product) => product.category === category);
   }, [category, products]);
+
+  useEffect(() => {
+    if (!toast) return;
+
+    const timer = window.setTimeout(() => setToast(""), 1800);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  function setProductQuantity(productId: string, value: number) {
+    setQuantities((current) => ({
+      ...current,
+      [productId]: Math.max(1, value),
+    }));
+  }
+
+  function addProductToCart(product: any) {
+    const productId = String(product.id);
+    const quantity = quantities[productId] || 1;
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+    for (let index = 0; index < quantity; index += 1) {
+      cart.push(product);
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    setToast(product.name + " x" + quantity + " добавлено в корзину");
+  }
 
   function selectCategory(item: string) {
     if (item === "Подписки") {
@@ -258,14 +349,16 @@ export default function CatalogClient() {
                     {product.description}
                   </p>
 
-                  <div className="flex items-center justify-between gap-2 mt-4">
+                  <div className="mt-4">
                     <p className="text-lg sm:text-xl font-black text-yellow-400 whitespace-nowrap">
                       {product.price}
                     </p>
-
-                    <span className="h-9 w-9 rounded-xl bg-yellow-400 text-black flex items-center justify-center font-black group-hover:bg-yellow-300 transition shrink-0">
-                      →
-                    </span>
+                    <QuantityControls
+                      product={product}
+                      quantity={quantities[String(product.id)] || 1}
+                      setQuantity={setProductQuantity}
+                      addToCart={addProductToCart}
+                    />
                   </div>
                 </div>
               </a>
@@ -273,6 +366,12 @@ export default function CatalogClient() {
           </div>
         )}
       </div>
+
+      {toast ? (
+        <div className="fixed right-4 bottom-4 z-50 max-w-[calc(100vw-2rem)] rounded-2xl border border-yellow-400/30 bg-black px-5 py-4 text-sm sm:text-base font-black shadow-2xl">
+          {toast}
+        </div>
+      ) : null}
     </main>
   );
 }
