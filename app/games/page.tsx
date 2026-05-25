@@ -55,6 +55,20 @@ function GameImage({
   );
 }
 
+function getGameBadge(game: MarketplaceGame) {
+  const badge = String(game.badge || "").trim();
+
+  if (badge && badge !== game.region && badge !== game.platform) {
+    return badge;
+  }
+
+  if (Number(game.discountPercent || 0) > 0) {
+    return "Скидка";
+  }
+
+  return "";
+}
+
 function addGameToCart(game: MarketplaceGame) {
   const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
@@ -431,9 +445,9 @@ export default function GamesPage() {
                       <span className="bg-black/70 text-white px-3 py-1 rounded-full text-xs font-black">
                         {game.region}
                       </span>
-                      {game.badge ? (
+                      {getGameBadge(game) ? (
                         <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-black">
-                          {game.badge}
+                          {getGameBadge(game)}
                         </span>
                       ) : null}
                     </div>
