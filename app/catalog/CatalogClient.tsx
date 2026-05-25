@@ -636,6 +636,17 @@ export default function CatalogClient() {
   }
 
   function addSubscriptionPlan(plan: SubscriptionPlan) {
+    const product = planToProduct(plan);
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const alreadyInCart = Array.isArray(cart)
+      ? cart.some((item: any) => String(item.id) === String(product.id))
+      : false;
+
+    if (!alreadyInCart) {
+      cart.push(product);
+      localStorage.setItem("cart", JSON.stringify(cart));
+    }
+
     setSubscriptionCart((items) => {
       const existing = items.find((item) => item.plan.id === plan.id);
 
@@ -648,7 +659,7 @@ export default function CatalogClient() {
 
     setToast(
       (plan.tier === "EA Play" ? "EA Play" : "PS Plus " + plan.tier) +
-        " добавлено в оформление"
+        (alreadyInCart ? " уже есть в корзине" : " добавлено в корзину")
     );
   }
 
@@ -669,16 +680,7 @@ export default function CatalogClient() {
   }
 
   function checkoutSubscriptionItems() {
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-
-    for (const item of subscriptionCart) {
-      for (let index = 0; index < item.quantity; index += 1) {
-        cart.push(planToProduct(item.plan));
-      }
-    }
-
-    localStorage.setItem("cart", JSON.stringify(cart));
-    window.location.href = "/checkout";
+    window.location.href = "/cart";
   }
 
   function selectCategory(item: string) {
