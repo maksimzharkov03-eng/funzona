@@ -77,14 +77,6 @@ export default function RootLayout({
       </div>
     </div>
 
-    <div className="md:col-span-2">
-      <h3 className="font-black text-xl mb-5">Контакты поддержки</h3>
-      <div className="space-y-3 text-gray-400">
-        <p>✈️ Telegram: @FunZona_manager</p>
-        <p>✉️ Email: Funzonapspsn@gmail.com</p>
-        <p>💬 Онлайн-чат: на сайте</p>
-      </div>
-    </div>
   </div>
 
   <div className="max-w-7xl mx-auto mt-12 border-t border-white/10 pt-7">
