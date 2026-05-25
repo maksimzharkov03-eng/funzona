@@ -23,6 +23,7 @@ model Order {
   status       String   @default("Ожидает оплаты")
   productName  String   @default("Товар не указан")
   productPrice String   @default("0 ₽")
+  deliveryData String?
   userLogin    String?
   createdAt    DateTime @default(now())
 }

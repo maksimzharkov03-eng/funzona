@@ -107,13 +107,6 @@ export async function POST(req: Request) {
       }
     }
 
-    if (!body.telegram) {
-      return NextResponse.json(
-        { error: "Не указан Telegram" },
-        { status: 400 }
-      );
-    }
-
     if (!userLogin) {
       return NextResponse.json(
         { error: "Пользователь не авторизован" },
@@ -153,7 +146,7 @@ export async function POST(req: Request) {
     const order = await prisma.order.create({
       data: {
         status: "Ожидает оплаты",
-        telegram: body.telegram,
+        telegram: body.telegram || "Чат на сайте",
         payment: body.payment || "Не указано",
         comment: orderComment,
         productName,
@@ -178,8 +171,8 @@ export async function POST(req: Request) {
         "👤 Логин клиента: " +
         userLogin +
         "\n" +
-        "💬 Telegram: " +
-        body.telegram +
+        "💬 Связь: " +
+        (body.telegram || "Чат на сайте") +
         "\n" +
         "💳 Оплата: " +
         (body.payment || "Не указано") +

@@ -19,6 +19,7 @@ export default function AdminPage() {
   const [filter, setFilter] = useState("Все");
   const [activeTab, setActiveTab] = useState<AdminTab>("orders");
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [deliveryDrafts, setDeliveryDrafts] = useState<Record<number, string>>({});
 
   const statuses = [
     "Ожидает оплаты",
@@ -32,6 +33,17 @@ export default function AdminPage() {
     const res = await fetch("/api/orders");
     const data = await res.json();
     setOrders(data);
+    setDeliveryDrafts((current) => {
+      const next = { ...current };
+
+      for (const order of data) {
+        if (next[order.id] === undefined) {
+          next[order.id] = order.deliveryData || "";
+        }
+      }
+
+      return next;
+    });
   }
 
   async function loadUnreadMessages() {
@@ -72,6 +84,35 @@ export default function AdminPage() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ status }),
+    });
+
+    loadOrders();
+  }
+
+  function updateDeliveryDraft(orderId: number, value: string) {
+    setDeliveryDrafts((current) => ({
+      ...current,
+      [orderId]: value,
+    }));
+  }
+
+  async function saveDelivery(orderId: number) {
+    const deliveryData = deliveryDrafts[orderId] || "";
+
+    if (!deliveryData.trim()) {
+      alert("Заполни данные выдачи");
+      return;
+    }
+
+    await fetch(`/api/orders/${orderId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status: "Выдан",
+        deliveryData,
+      }),
     });
 
     loadOrders();
@@ -250,11 +291,32 @@ export default function AdminPage() {
                         <p className="mt-3 text-gray-400">
                           Дата: {new Date(order.createdAt).toLocaleString()}
                         </p>
-                        <p className="text-gray-400">Telegram: {order.telegram}</p>
+                        <p className="text-gray-400">Связь: {order.telegram || "Чат на сайте"}</p>
                         <p className="text-gray-400">Оплата: {order.payment}</p>
                         <p className="text-gray-400">
                           Комментарий: {order.comment || "—"}
                         </p>
+
+                        <div className="mt-5 rounded-2xl border border-yellow-400/15 bg-white/[0.03] p-4">
+                          <label className="text-sm font-black uppercase text-yellow-400">
+                            Данные выдачи
+                          </label>
+                          <textarea
+                            value={deliveryDrafts[order.id] || ""}
+                            onChange={(event) =>
+                              updateDeliveryDraft(order.id, event.target.value)
+                            }
+                            placeholder="Например: код, логин/пароль, инструкция или ссылка"
+                            className="mt-3 h-28 w-full resize-none rounded-2xl border border-white/10 bg-black px-4 py-3 text-sm outline-none focus:border-yellow-400"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => saveDelivery(order.id)}
+                            className="mt-3 rounded-xl bg-yellow-400 px-5 py-3 text-sm font-black text-black transition hover:bg-yellow-300"
+                          >
+                            Сохранить и выдать на сайте
+                          </button>
+                        </div>
 
                         <div className="mt-5 border-t border-white/10 pt-5">
                           <p className="text-lg font-bold text-white">

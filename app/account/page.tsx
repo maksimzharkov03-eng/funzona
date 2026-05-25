@@ -10,6 +10,7 @@ type Order = {
   status: string;
   productName?: string | null;
   productPrice?: string | null;
+  deliveryData?: string | null;
   createdAt: string;
 };
 
@@ -229,9 +230,24 @@ export default function AccountPage() {
                     </p>
 
                     <div className="mt-5 grid gap-3 text-sm text-gray-400 sm:grid-cols-2">
-                      <p>Telegram: {order.telegram}</p>
+                      <p>Связь: {order.telegram || "Чат на сайте"}</p>
                       <p>Оплата: {order.payment}</p>
                     </div>
+
+                    {order.deliveryData ? (
+                      <div className="mt-5 rounded-3xl border border-green-400/25 bg-green-400/10 p-5">
+                        <p className="text-sm font-black uppercase text-green-300">
+                          Данные выдачи
+                        </p>
+                        <pre className="mt-3 whitespace-pre-wrap break-words font-sans text-sm leading-6 text-white">
+                          {order.deliveryData}
+                        </pre>
+                      </div>
+                    ) : order.status === "Выдан" ? (
+                      <div className="mt-5 rounded-3xl border border-yellow-400/20 bg-yellow-400/10 p-5 text-sm font-bold text-yellow-200">
+                        Заказ выдан. Если данные не отображаются, напиши в поддержку на сайте.
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className="rounded-2xl bg-yellow-400 px-5 py-4 text-black lg:min-w-[180px] lg:text-right">
