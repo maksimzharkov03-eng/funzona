@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 export default function HeaderClient() {
   const [login, setLogin] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [unreadMessages, setUnreadMessages] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -30,6 +31,42 @@ export default function HeaderClient() {
 
   const isAdmin = login === "admin";
 
+  useEffect(() => {
+    if (!isAdmin) {
+      setUnreadMessages(0);
+      return;
+    }
+
+    async function loadUnreadMessages() {
+      try {
+        const res = await fetch("/api/chat?mode=conversations", {
+          cache: "no-store",
+        });
+
+        if (!res.ok) return;
+
+        const conversations = await res.json();
+        const total = Array.isArray(conversations)
+          ? conversations.reduce(
+              (sum: number, item: any) => sum + Number(item.unread || 0),
+              0
+            )
+          : 0;
+
+        setUnreadMessages(total);
+      } catch {
+        setUnreadMessages(0);
+      }
+    }
+
+    loadUnreadMessages();
+    const timer = window.setInterval(loadUnreadMessages, 5000);
+
+    return () => window.clearInterval(timer);
+  }, [isAdmin]);
+
+  const unreadLabel = unreadMessages > 99 ? "99+" : String(unreadMessages);
+
   return (
     <header className="sticky top-0 z-50 border-b border-yellow-400/10 bg-black/70 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
@@ -49,9 +86,14 @@ export default function HeaderClient() {
           {isAdmin ? (
             <a
               href="/admin"
-              className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 font-black text-yellow-400 transition hover:border-yellow-400"
+              className="relative rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 font-black text-yellow-400 transition hover:border-yellow-400"
             >
               Админ
+              {unreadMessages > 0 ? (
+                <span className="absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-black text-white shadow-lg shadow-red-500/30">
+                  {unreadLabel}
+                </span>
+              ) : null}
             </a>
           ) : null}
 
@@ -99,9 +141,14 @@ export default function HeaderClient() {
             {isAdmin ? (
               <a
                 href="/admin"
-                className="rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-4 py-3 text-center text-yellow-400 hover:border-yellow-400"
+                className="relative rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-4 py-3 text-center text-yellow-400 hover:border-yellow-400"
               >
                 Админ
+                {unreadMessages > 0 ? (
+                  <span className="absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-black text-white">
+                    {unreadLabel}
+                  </span>
+                ) : null}
               </a>
             ) : null}
 

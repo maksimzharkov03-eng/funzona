@@ -18,6 +18,7 @@ export default function AdminPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [filter, setFilter] = useState("Все");
   const [activeTab, setActiveTab] = useState<AdminTab>("orders");
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   const statuses = [
     "Ожидает оплаты",
@@ -33,8 +34,35 @@ export default function AdminPage() {
     setOrders(data);
   }
 
+  async function loadUnreadMessages() {
+    try {
+      const res = await fetch("/api/chat?mode=conversations", {
+        cache: "no-store",
+      });
+
+      if (!res.ok) return;
+
+      const conversations = await res.json();
+      const total = Array.isArray(conversations)
+        ? conversations.reduce(
+            (sum: number, item: any) => sum + Number(item.unread || 0),
+            0
+          )
+        : 0;
+
+      setUnreadMessages(total);
+    } catch {
+      setUnreadMessages(0);
+    }
+  }
+
   useEffect(() => {
     loadOrders();
+    loadUnreadMessages();
+
+    const timer = window.setInterval(loadUnreadMessages, 5000);
+
+    return () => window.clearInterval(timer);
   }, []);
 
   async function updateStatus(orderId: number, status: string) {
@@ -95,6 +123,8 @@ export default function AdminPage() {
       ? orders
       : orders.filter((order) => order.status === filter);
 
+  const unreadLabel = unreadMessages > 99 ? "99+" : String(unreadMessages);
+
   return (
     <main className="min-h-screen bg-black px-4 py-8 text-white sm:px-6 sm:py-10">
       <div className="mx-auto max-w-7xl">
@@ -152,7 +182,21 @@ export default function AdminPage() {
                   : "border-yellow-400/20 bg-white/5 hover:border-yellow-400")
               }
             >
-              <span className="block text-xl font-black">{tab.label}</span>
+              <span className="flex items-center gap-2 text-xl font-black">
+                {tab.label}
+                {tab.id === "chat" && unreadMessages > 0 ? (
+                  <span
+                    className={
+                      "flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-xs font-black " +
+                      (activeTab === tab.id
+                        ? "bg-black text-yellow-400"
+                        : "bg-red-500 text-white")
+                    }
+                  >
+                    {unreadLabel}
+                  </span>
+                ) : null}
+              </span>
               <span className={activeTab === tab.id ? "mt-1 block text-sm text-black/60" : "mt-1 block text-sm text-gray-400"}>
                 {tab.hint}
               </span>
