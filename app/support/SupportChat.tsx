@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 type Message = {
   id: number;
-  sender: "user" | "admin";
+  sender: "user" | "admin" | "system";
   text: string;
   createdAt: string;
 };
@@ -132,6 +132,7 @@ export default function SupportChat() {
           <div className="space-y-3">
             {messages.map((message) => {
               const own = message.sender === "user";
+              const system = message.sender === "system";
 
               return (
                 <div
@@ -143,7 +144,9 @@ export default function SupportChat() {
                       "max-w-[85%] rounded-3xl px-5 py-4 sm:max-w-[70%] " +
                       (own
                         ? "bg-yellow-400 text-black"
-                        : "border border-yellow-400/20 bg-white/10 text-white")
+                        : system
+                          ? "border border-emerald-400/30 bg-emerald-500/10 text-emerald-100"
+                          : "border border-yellow-400/20 bg-white/10 text-white")
                     }
                   >
                     <p className="whitespace-pre-wrap break-words font-semibold">

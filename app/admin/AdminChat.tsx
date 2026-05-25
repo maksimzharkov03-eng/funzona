@@ -13,7 +13,7 @@ type Conversation = {
 type Message = {
   id: number;
   userLogin: string;
-  sender: "user" | "admin";
+  sender: "user" | "admin" | "system";
   text: string;
   createdAt: string;
 };
@@ -143,7 +143,11 @@ export default function AdminChat() {
                       ) : null}
                     </div>
                     <p className={active ? "mt-2 line-clamp-2 text-sm text-black/70" : "mt-2 line-clamp-2 text-sm text-gray-400"}>
-                      {conversation.lastSender === "admin" ? "Вы: " : "Клиент: "}
+                      {conversation.lastSender === "admin"
+                        ? "Вы: "
+                        : conversation.lastSender === "system"
+                          ? "Система: "
+                          : "Клиент: "}
                       {conversation.lastText}
                     </p>
                   </button>
@@ -170,6 +174,7 @@ export default function AdminChat() {
               <div className="space-y-3">
                 {messages.map((message) => {
                   const own = message.sender === "admin";
+                  const system = message.sender === "system";
 
                   return (
                     <div
@@ -181,7 +186,9 @@ export default function AdminChat() {
                           "max-w-[85%] rounded-3xl px-5 py-4 sm:max-w-[70%] " +
                           (own
                             ? "bg-yellow-400 text-black"
-                            : "border border-white/10 bg-white/10 text-white")
+                            : system
+                              ? "border border-emerald-400/30 bg-emerald-500/10 text-emerald-100"
+                              : "border border-white/10 bg-white/10 text-white")
                         }
                       >
                         <p className="whitespace-pre-wrap break-words font-semibold">

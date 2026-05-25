@@ -48,12 +48,12 @@ export async function GET(req: Request) {
           lastText: message.text,
           lastSender: message.sender,
           lastAt: message.createdAt,
-          unread: message.sender === "user" && !message.readByAdmin ? 1 : 0,
+          unread: message.sender !== "admin" && !message.readByAdmin ? 1 : 0,
         });
         continue;
       }
 
-      if (message.sender === "user" && !message.readByAdmin) {
+      if (message.sender !== "admin" && !message.readByAdmin) {
         current.unread += 1;
       }
     }
@@ -72,7 +72,7 @@ export async function GET(req: Request) {
     await prisma.chatMessage.updateMany({
       where: {
         userLogin: targetLogin,
-        sender: "user",
+        sender: { not: "admin" },
         readByAdmin: false,
       },
       data: { readByAdmin: true },
