@@ -19,11 +19,10 @@ type AppleCartItem = {
 
 const categories = [
   { name: "Все", icon: "✦", hint: "Витрина" },
+  { name: "Игры", icon: "◆", hint: "PS4/PS5" },
   { name: "Подписки", icon: "▣", hint: "PS Plus" },
-  { name: "PlayStation", icon: "◈", hint: "PSN" },
   { name: "ChatGPT", icon: "⌘", hint: "AI" },
   { name: "Apple ID", icon: "●", hint: "Коды" },
-  { name: "Игры", icon: "◆", hint: "PS4/PS5" },
 ];
 
 const quickCards = [
@@ -40,10 +39,10 @@ const quickCards = [
     icon: "●",
   },
   {
-    title: "PlayStation",
-    subtitle: "Подписки и цифровые товары",
-    href: "/catalog?category=PlayStation",
-    icon: "◈",
+    title: "Игры",
+    subtitle: "Каталог PS4 и PS5",
+    href: "/games",
+    icon: "◆",
   },
 ];
 
@@ -537,7 +536,7 @@ export default function CatalogClient() {
         </section>
 
         <section className="mb-7 sm:mb-9">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {categories.map((item) => {
               const active = category === item.name;
 
