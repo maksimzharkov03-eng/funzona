@@ -33,8 +33,11 @@ const categoryIds = [
   "30e3fe35-8f2d-4496-95bc-844f56952e3c",
 ];
 
+const searchQueries = ["ufc"];
+
 const maxPagesPerCategory = 7;
-const maxGamesPerRegion = 300;
+const maxSearchPages = 2;
+const maxGamesPerRegion = 500;
 const cacheSeconds = 60 * 60 * 6;
 
 const skipWords = [
@@ -159,11 +162,12 @@ function normalizePlatform(body: string) {
 
   if (hasPS4 && hasPS5) return "PS4/PS5";
   if (hasPS4) return "PS4";
-  return "PS5";
+  if (hasPS5) return "PS5";
+  return "";
 }
 
 function shouldSkipProduct(product: ParsedProduct) {
-  if (!product.image || product.price <= 0) return true;
+  if (!product.image || !product.platform || product.price <= 0) return true;
 
   const text = [
     product.name,
@@ -172,8 +176,23 @@ function shouldSkipProduct(product: ParsedProduct) {
   ]
     .join(" ")
     .toLowerCase();
+  const classification = text.toUpperCase();
 
-  return skipWords.some((word) => text.includes(word));
+  if (
+    /ADD[_-]ON|VIRTUAL[_-]CURRENCY|CHARACTER|COSTUME|AVATAR|THEME|SOUNDTRACK|CONSUMABLE/.test(
+      classification
+    )
+  ) {
+    return true;
+  }
+
+  return skipWords.some((word) => {
+    const normalizedWord = word.toLowerCase();
+    return (
+      text.includes(normalizedWord) ||
+      text.includes(normalizedWord.replace(/-/g, "_"))
+    );
+  });
 }
 
 function parseProducts(html: string) {
@@ -264,13 +283,41 @@ async function fetchCategoryPage(region: StoreRegion, categoryId: string, page: 
   return parseProducts(await response.text());
 }
 
+async function fetchSearchPage(region: StoreRegion, query: string, page: number) {
+  const response = await fetch(
+    "https://store.playstation.com/" +
+      region.locale +
+      "/search/" +
+      encodeURIComponent(query) +
+      "/" +
+      page,
+    {
+      headers: {
+        "accept-language": region.locale,
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125 Safari/537.36",
+      },
+      next: { revalidate: cacheSeconds },
+    }
+  );
+
+  if (!response.ok) return [];
+
+  return parseProducts(await response.text());
+}
+
 async function fetchRegionCatalog(region: StoreRegion) {
-  const tasks = categoryIds.flatMap((categoryId) =>
+  const categoryTasks = categoryIds.flatMap((categoryId) =>
     Array.from({ length: maxPagesPerCategory }, (_item, index) =>
       fetchCategoryPage(region, categoryId, index + 1)
     )
   );
-  const pages = await Promise.all(tasks);
+  const searchTasks = searchQueries.flatMap((query) =>
+    Array.from({ length: maxSearchPages }, (_item, index) =>
+      fetchSearchPage(region, query, index + 1)
+    )
+  );
+  const pages = await Promise.all([...categoryTasks, ...searchTasks]);
   const games = new Map<string, MarketplaceGame>();
 
   for (const product of pages.flat()) {
