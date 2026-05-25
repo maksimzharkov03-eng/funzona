@@ -1,5 +1,5 @@
 import { prisma } from "@/app/lib/prisma";
-import { calculateRubPrice, demoGames, roundTryPrice } from "@/app/lib/games";
+import { calculateRubPrice, demoGames, roundTryPrice, roundUahPrice } from "@/app/lib/games";
 import { storeGames } from "@/app/data/ps-store-games";
 import { getPlayStationStoreCatalog } from "@/app/lib/ps-store-catalog";
 import { NextResponse } from "next/server";
@@ -40,7 +40,11 @@ export async function POST(req: Request) {
     const rate = Number(body.rate || body.exchangeRate || 1);
     const currency = body.currency || "TRY";
     const roundedOriginalPrice =
-      currency === "TRY" ? roundTryPrice(originalPrice) : originalPrice;
+      currency === "TRY"
+        ? roundTryPrice(originalPrice)
+        : currency === "UAH"
+          ? roundUahPrice(originalPrice)
+          : originalPrice;
     const manualRubPrice = Number(body.rubPrice || 0);
     const rubPrice =
       manualRubPrice > 0

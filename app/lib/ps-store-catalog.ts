@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import {
   calculateRubPrice,
   roundTryPrice,
+  roundUahPrice,
   type MarketplaceGame,
 } from "@/app/lib/games";
 
@@ -278,7 +279,11 @@ function toMarketplaceGame(
     platform: product.platform,
     region: region.country,
     originalPrice:
-      region.currency === "TRY" ? roundTryPrice(product.price) : Math.ceil(product.price),
+      region.currency === "TRY"
+        ? roundTryPrice(product.price)
+        : region.currency === "UAH"
+          ? roundUahPrice(product.price)
+          : Math.ceil(product.price),
     currency: region.currency,
     rubPrice: calculateRubPrice(product.price, undefined, region.currency),
     oldRubPrice,

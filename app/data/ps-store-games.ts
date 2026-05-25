@@ -2,6 +2,7 @@ import {
   getRubPriceByUahPrice,
   getRubPriceByTryPrice,
   roundTryPrice,
+  roundUahPrice,
   type MarketplaceGame,
 } from "@/app/lib/games";
 
@@ -47,7 +48,7 @@ function uaGame(
     image,
     platform: options.platform || "PS5",
     region: "Украина",
-    originalPrice,
+    originalPrice: roundUahPrice(originalPrice),
     currency: "UAH",
     rubPrice: getRubPriceByUahPrice(originalPrice),
     oldRubPrice: options.oldRubPrice || null,

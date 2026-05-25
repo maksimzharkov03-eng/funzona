@@ -139,6 +139,16 @@ export function roundTryPrice(price: number) {
   return Math.ceil(price / 250) * 250;
 }
 
+export function roundUahPrice(price: number) {
+  if (price <= 0) return 0;
+  return Math.ceil(price);
+}
+
+export function roundRubPrice(price: number, step = 50) {
+  if (price <= 0) return 0;
+  return Math.ceil(price / step) * step;
+}
+
 export function getRubPriceByTryPrice(price: number) {
   const roundedTry = roundTryPrice(price);
   const exact = tryPriceTable.find((tier) => tier.tryAmount === roundedTry);
@@ -165,11 +175,12 @@ export function getRubPriceByTryPrice(price: number) {
 export function getRubPriceByUahPrice(price: number) {
   if (price <= 0) return 0;
 
+  const roundedUah = roundUahPrice(price);
   const tier =
-    uahRateTable.find((item) => price >= item.min && price <= item.max) ||
+    uahRateTable.find((item) => roundedUah >= item.min && roundedUah <= item.max) ||
     uahRateTable[0];
 
-  return Math.ceil(price * tier.rate);
+  return roundRubPrice(roundedUah * tier.rate);
 }
 
 export function calculateRubPrice(
