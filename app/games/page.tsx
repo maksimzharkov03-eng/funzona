@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import {
   formatRub,
   getGameCover,
@@ -17,6 +17,8 @@ const sortOptions: { value: SortMode; label: string }[] = [
   { value: "price-asc", label: "Дешевле" },
   { value: "price-desc", label: "Дороже" },
 ];
+
+const gamesPageSize = 48;
 
 function GameImage({
   src,
@@ -91,28 +93,19 @@ export default function GamesPage() {
   const [region, setRegion] = useState("Все");
   const [sort, setSort] = useState<SortMode>("popular");
   const [sortOpen, setSortOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(gamesPageSize);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState("");
+  const deferredSearch = useDeferredValue(search);
 
   useEffect(() => {
     async function loadGames() {
       try {
-        const cached = sessionStorage.getItem("funzona-games-cache-v3");
-
-        if (cached) {
-          const cachedGames = JSON.parse(cached);
-          if (Array.isArray(cachedGames) && cachedGames.length > 0) {
-            setGames(cachedGames);
-            setLoading(false);
-          }
-        }
-
-        const res = await fetch("/api/games");
+        const res = await fetch("/api/games", { cache: "force-cache" });
         const data = await res.json();
 
         if (Array.isArray(data) && data.length > 0) {
           setGames(data);
-          sessionStorage.setItem("funzona-games-cache-v3", JSON.stringify(data));
         }
       } catch {
         setGames(storeGames);
@@ -141,8 +134,12 @@ export default function GamesPage() {
     [games]
   );
 
+  useEffect(() => {
+    setVisibleCount(gamesPageSize);
+  }, [deferredSearch, platform, region, sort]);
+
   const filteredGames = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
+    const normalizedSearch = deferredSearch.trim().toLowerCase();
 
     return games
       .filter((game) => {
@@ -179,7 +176,12 @@ export default function GamesPage() {
 
         return Number(b.isFeatured || false) - Number(a.isFeatured || false);
       });
-  }, [games, platform, region, search, sort]);
+  }, [games, platform, region, deferredSearch, sort]);
+
+  const visibleGames = useMemo(
+    () => filteredGames.slice(0, visibleCount),
+    [filteredGames, visibleCount]
+  );
 
   function handleAddToCart(game: MarketplaceGame) {
     addGameToCart(game);
@@ -422,8 +424,9 @@ export default function GamesPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
-              {filteredGames.map((game) => (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
+                {visibleGames.map((game) => (
                 <article
                   key={game.id}
                   className="group bg-gradient-to-b from-yellow-400/10 via-white/5 to-black border border-yellow-400/10 rounded-3xl overflow-hidden hover:border-yellow-400 hover:-translate-y-2 transition duration-300"
@@ -499,8 +502,21 @@ export default function GamesPage() {
                     </div>
                   </div>
                 </article>
-              ))}
-            </div>
+                ))}
+              </div>
+
+              {visibleCount < filteredGames.length ? (
+                <div className="flex justify-center mt-9">
+                  <button
+                    type="button"
+                    onClick={() => setVisibleCount((count) => count + gamesPageSize)}
+                    className="bg-yellow-400 text-black px-8 py-4 rounded-2xl font-black hover:bg-yellow-300 transition"
+                  >
+                    Показать еще {Math.min(gamesPageSize, filteredGames.length - visibleCount)}
+                  </button>
+                </div>
+              ) : null}
+            </>
           )}
         </section>
       </div>

@@ -5,7 +5,7 @@ import { getPlayStationStoreCatalog } from "@/app/lib/ps-store-catalog";
 import { NextResponse } from "next/server";
 
 const apiCacheHeaders = {
-  "Cache-Control": "public, s-maxage=21600, stale-while-revalidate=86400",
+  "Cache-Control": "public, max-age=900, s-maxage=86400, stale-while-revalidate=604800",
 };
 
 export async function GET() {

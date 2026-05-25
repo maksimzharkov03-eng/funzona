@@ -38,7 +38,7 @@ const regions: StoreRegion[] = [
 const maxBrowsePagesPerRegion = Number(process.env.PS_STORE_MAX_PAGES || 420);
 const maxGamesPerRegion = Number(process.env.PS_STORE_MAX_GAMES_PER_REGION || 12000);
 const browseBatchSize = Number(process.env.PS_STORE_FETCH_BATCH_SIZE || 16);
-const cacheSeconds = 60 * 60 * 6;
+const cacheSeconds = 60 * 60 * 24;
 
 const blockedGameTitles = [
   "stalker 2",
@@ -442,6 +442,6 @@ async function loadPlayStationStoreCatalog() {
 
 export const getPlayStationStoreCatalog = unstable_cache(
   loadPlayStationStoreCatalog,
-  ["ps-store-full-browse-catalog-v2"],
+  ["ps-store-full-browse-catalog-v3"],
   { revalidate: cacheSeconds }
 );
