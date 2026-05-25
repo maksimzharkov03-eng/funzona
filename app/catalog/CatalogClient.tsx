@@ -9,7 +9,7 @@ const categories = [
   { name: "PlayStation", icon: "◈", hint: "PSN" },
   { name: "ChatGPT", icon: "⌘", hint: "AI" },
   { name: "Apple ID", icon: "●", hint: "Коды" },
-  { name: "Игровые товары", icon: "◆", hint: "Digital" },
+  { name: "Игры", icon: "◆", hint: "PS4/PS5" },
 ];
 
 const quickCards = [
@@ -98,6 +98,11 @@ export default function CatalogClient() {
       return;
     }
 
+    if (item === "Игры") {
+      window.location.href = "/games";
+      return;
+    }
+
     setCategory(item);
   }
 
@@ -118,7 +123,7 @@ export default function CatalogClient() {
               </h1>
 
               <p className="text-gray-400 mt-4 max-w-2xl text-sm sm:text-base leading-7">
-                Подписки, пополнения, Apple ID, ChatGPT и цифровые товары.
+                Подписки, пополнения, Apple ID, ChatGPT и игры.
               </p>
             </div>
 
