@@ -3,6 +3,14 @@ import HeaderClient from "./HeaderClient";
 export const metadata = {
   title: "FunZona",
   description: "Premium Digital Store",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+    apple: "/apple-icon.svg",
+  },
 };
 
 export default function RootLayout({
