@@ -25,21 +25,19 @@ type ParsedProduct = {
   basePrice: number | null;
 };
 
+type StorePage = {
+  html: string;
+  products: ParsedProduct[];
+};
+
 const regions: StoreRegion[] = [
   { locale: "en-tr", country: "Турция", currency: "TRY" },
   { locale: "ru-ua", country: "Украина", currency: "UAH" },
 ];
 
-const categoryIds = [
-  "d0446d4b-dc9a-4f1e-86ec-651f099c9b29",
-  "30e3fe35-8f2d-4496-95bc-844f56952e3c",
-];
-
-const searchQueries = ["ufc"];
-
-const maxPagesPerCategory = 7;
-const maxSearchPages = 2;
-const maxGamesPerRegion = 500;
+const maxBrowsePagesPerRegion = Number(process.env.PS_STORE_MAX_PAGES || 420);
+const maxGamesPerRegion = Number(process.env.PS_STORE_MAX_GAMES_PER_REGION || 12000);
+const browseBatchSize = Number(process.env.PS_STORE_FETCH_BATCH_SIZE || 16);
 const cacheSeconds = 60 * 60 * 6;
 
 const blockedGameTitles = [
@@ -63,6 +61,9 @@ const skipWords = [
   "coins",
   "token",
   "season pass",
+  "pack",
+  "bundle pack",
+  "starter pack",
   "дополнение",
   "демо",
   "пробная",
@@ -74,6 +75,7 @@ const skipWords = [
   "монет",
   "очков",
   "жетон",
+  "набор",
 ];
 
 function decodeJsonString(value: string) {
@@ -93,7 +95,7 @@ function pickString(body: string, field: string) {
 
 function pickImage(body: string) {
   const media = Array.from(
-    body.matchAll(/\{"__typename":"Media"[\s\S]*?\}/g)
+    body.matchAll(/\{\"__typename\":\"Media\"[\s\S]*?\}/g)
   )
     .map((match) => {
       const block = match[0];
@@ -148,7 +150,7 @@ function parseStorePrice(value: string) {
       : compact.replace(/,/g, "");
   const price = Number(normalized);
 
-  return Number.isFinite(price) ? price : null;
+  return Number.isFinite(price) && price > 0 ? price : null;
 }
 
 function makeNumericId(region: StoreRegion, productId: string) {
@@ -259,6 +261,25 @@ function parseProducts(html: string) {
   return products.filter((product) => product.name);
 }
 
+function parseBrowseTotalPages(html: string) {
+  const pages = new Set<number>();
+
+  for (const match of html.matchAll(/\/pages\/browse\/(\d+)/g)) {
+    pages.add(Number(match[1]));
+  }
+
+  for (const match of html.matchAll(/"(?:totalPages|totalPageCount|pageCount)":(\d+)/g)) {
+    pages.add(Number(match[1]));
+  }
+
+  const detected = Math.max(
+    1,
+    ...Array.from(pages).filter((page) => Number.isFinite(page) && page > 0)
+  );
+
+  return Math.min(Math.max(detected, maxBrowsePagesPerRegion), maxBrowsePagesPerRegion);
+}
+
 function toMarketplaceGame(
   product: ParsedProduct,
   region: StoreRegion,
@@ -300,67 +321,60 @@ function toMarketplaceGame(
   };
 }
 
-async function fetchCategoryPage(region: StoreRegion, categoryId: string, page: number) {
-  const response = await fetch(
+function getBrowseUrl(region: StoreRegion, page: number) {
+  return (
     "https://store.playstation.com/" +
-      region.locale +
-      "/category/" +
-      categoryId +
-      "/" +
-      page,
-    {
-      headers: {
-        "accept-language": region.locale,
-        "user-agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125 Safari/537.36",
-      },
-      next: { revalidate: cacheSeconds },
-    }
+    region.locale +
+    "/pages/browse/" +
+    (page > 1 ? String(page) : "")
   );
-
-  if (!response.ok) return [];
-
-  return parseProducts(await response.text());
 }
 
-async function fetchSearchPage(region: StoreRegion, query: string, page: number) {
-  const response = await fetch(
-    "https://store.playstation.com/" +
-      region.locale +
-      "/search/" +
-      encodeURIComponent(query) +
-      "/" +
-      page,
-    {
-      headers: {
-        "accept-language": region.locale,
-        "user-agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125 Safari/537.36",
-      },
-      next: { revalidate: cacheSeconds },
-    }
-  );
+async function fetchBrowsePage(region: StoreRegion, page: number): Promise<StorePage> {
+  const response = await fetch(getBrowseUrl(region, page), {
+    headers: {
+      "accept-language": region.locale,
+      "user-agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125 Safari/537.36",
+    },
+    next: { revalidate: cacheSeconds },
+  });
 
-  if (!response.ok) return [];
+  if (!response.ok) return { html: "", products: [] };
 
-  return parseProducts(await response.text());
+  const html = await response.text();
+  return { html, products: parseProducts(html) };
+}
+
+async function runInBatches<T, R>(
+  items: T[],
+  size: number,
+  mapper: (item: T) => Promise<R>
+) {
+  const results: R[] = [];
+  const batchSize = Math.max(1, size);
+
+  for (let index = 0; index < items.length; index += batchSize) {
+    const batch = items.slice(index, index + batchSize);
+    results.push(...(await Promise.all(batch.map(mapper))));
+  }
+
+  return results;
 }
 
 async function fetchRegionCatalog(region: StoreRegion) {
-  const categoryTasks = categoryIds.flatMap((categoryId) =>
-    Array.from({ length: maxPagesPerCategory }, (_item, index) =>
-      fetchCategoryPage(region, categoryId, index + 1)
-    )
+  const firstPage = await fetchBrowsePage(region, 1);
+  const totalPages = parseBrowseTotalPages(firstPage.html);
+  const pageNumbers = Array.from(
+    { length: Math.max(0, totalPages - 1) },
+    (_item, index) => index + 2
   );
-  const searchTasks = searchQueries.flatMap((query) =>
-    Array.from({ length: maxSearchPages }, (_item, index) =>
-      fetchSearchPage(region, query, index + 1)
-    )
+  const otherPages = await runInBatches(pageNumbers, browseBatchSize, (page) =>
+    fetchBrowsePage(region, page)
   );
-  const pages = await Promise.all([...categoryTasks, ...searchTasks]);
   const games = new Map<string, MarketplaceGame>();
 
-  for (const product of pages.flat()) {
+  for (const product of [firstPage, ...otherPages].flatMap((page) => page.products)) {
     if (shouldSkipProduct(product)) continue;
 
     const key = region.country + ":" + product.id;
@@ -384,6 +398,6 @@ async function loadPlayStationStoreCatalog() {
 
 export const getPlayStationStoreCatalog = unstable_cache(
   loadPlayStationStoreCatalog,
-  ["ps-store-catalog-v8"],
+  ["ps-store-full-browse-catalog-v1"],
   { revalidate: cacheSeconds }
 );

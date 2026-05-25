@@ -97,7 +97,7 @@ export default function GamesPage() {
   useEffect(() => {
     async function loadGames() {
       try {
-        const cached = sessionStorage.getItem("funzona-games-cache");
+        const cached = sessionStorage.getItem("funzona-games-cache-v2");
 
         if (cached) {
           const cachedGames = JSON.parse(cached);
@@ -112,7 +112,7 @@ export default function GamesPage() {
 
         if (Array.isArray(data) && data.length > 0) {
           setGames(data);
-          sessionStorage.setItem("funzona-games-cache", JSON.stringify(data));
+          sessionStorage.setItem("funzona-games-cache-v2", JSON.stringify(data));
         }
       } catch {
         setGames(storeGames);
