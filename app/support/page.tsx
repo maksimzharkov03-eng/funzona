@@ -1,3 +1,5 @@
+import SupportChat from "./SupportChat";
+
 export default function SupportPage() {
   return (
     <main className="min-h-screen bg-black text-white px-6 py-12">
@@ -10,6 +12,8 @@ export default function SupportPage() {
         <p className="text-gray-400 mb-10">
           Ответы на частые вопросы по оплате и активации.
         </p>
+
+        <SupportChat />
 
         <div className="space-y-5">
 

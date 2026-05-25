@@ -2,6 +2,7 @@
 import AdminGames from "./AdminGames";
 import { useEffect, useState } from "react";
 import AdminProducts from "./AdminProducts";
+import AdminChat from "./AdminChat";
 
 export default function AdminPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -149,6 +150,8 @@ export default function AdminPage() {
             {totalRevenue} ₽
           </h2>
         </div>
+
+        <AdminChat />
 
         <h2 className="text-3xl font-black mb-5">
           Заказы

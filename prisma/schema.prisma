@@ -56,3 +56,16 @@ model Game {
   isFeatured      Boolean  @default(false)
   createdAt       DateTime @default(now())
 }
+
+
+model ChatMessage {
+  id          Int      @id @default(autoincrement())
+  userLogin   String
+  sender      String
+  text        String
+  readByAdmin Boolean  @default(false)
+  readByUser  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([userLogin, createdAt])
+}
