@@ -636,26 +636,18 @@ export default function CatalogClient() {
   }
 
   function addSubscriptionPlan(plan: SubscriptionPlan) {
-    const quantity = quantities["subscription-" + plan.id] || 1;
-
     setSubscriptionCart((items) => {
       const existing = items.find((item) => item.plan.id === plan.id);
 
       if (existing) {
-        return items.map((item) =>
-          item.plan.id === plan.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
+        return items;
       }
 
-      return [...items, { plan, quantity }];
+      return [...items, { plan, quantity: 1 }];
     });
 
     setToast(
       (plan.tier === "EA Play" ? "EA Play" : "PS Plus " + plan.tier) +
-        " x" +
-        quantity +
         " добавлено в оформление"
     );
   }
@@ -880,12 +872,13 @@ export default function CatalogClient() {
                               Подробнее
                             </a>
 
-                            <QuantityControls
-                              product={product}
-                              quantity={quantities["subscription-" + plan.id] || 1}
-                              setQuantity={setProductQuantity}
-                              addToCart={() => addSubscriptionPlan(plan)}
-                            />
+                            <button
+                              type="button"
+                              onClick={() => addSubscriptionPlan(plan)}
+                              className="mt-2 h-11 w-full rounded-xl bg-yellow-400 text-sm font-black text-black transition hover:bg-yellow-300"
+                            >
+                              В корзину
+                            </button>
                           </article>
                         );
                       })}
