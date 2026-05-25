@@ -31,6 +31,13 @@ function hideClientOrderNumber(message: any) {
     };
   }
 
+  if (/^🛒 Новый заказ #\d+/.test(text)) {
+    return {
+      ...message,
+      text: text.replace(/^🛒 Новый заказ #\d+/, "🛒 Новый заказ отправлен"),
+    };
+  }
+
   return message;
 }
 
