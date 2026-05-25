@@ -10,6 +10,8 @@ export default function HeaderClient() {
     setLogin(localStorage.getItem("userLogin"));
   }, []);
 
+  const isAdmin = login === "admin";
+
   return (
     <header className="sticky top-0 z-50 border-b border-yellow-400/10 bg-black/70 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
@@ -26,12 +28,14 @@ export default function HeaderClient() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <a
-            href="/admin"
-            className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 font-black text-yellow-400 transition hover:border-yellow-400"
-          >
-            Админ
-          </a>
+          {isAdmin ? (
+            <a
+              href="/admin"
+              className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 font-black text-yellow-400 transition hover:border-yellow-400"
+            >
+              Админ
+            </a>
+          ) : null}
 
         {login ? (
           <a href="/account" className="hover:text-yellow-400 transition font-black">
@@ -64,7 +68,6 @@ export default function HeaderClient() {
               ["Корзина", "/cart"],
               ["Поддержка", "/support"],
               ["FAQ", "/faq"],
-              ["Админ", "/admin"],
             ].map(([label, href]) => (
               <a
                 key={href}
@@ -74,6 +77,15 @@ export default function HeaderClient() {
                 {label}
               </a>
             ))}
+
+            {isAdmin ? (
+              <a
+                href="/admin"
+                className="rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-4 py-3 text-center text-yellow-400 hover:border-yellow-400"
+              >
+                Админ
+              </a>
+            ) : null}
 
             <a
               href={login ? "/account" : "/login"}
