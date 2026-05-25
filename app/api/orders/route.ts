@@ -94,7 +94,22 @@ function md5(value: string) {
   return crypto.createHash("md5").update(value).digest("hex");
 }
 
+function encodePaymentOrderId(orderId: number) {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let value = Math.max(1, orderId);
+  let code = "";
+
+  while (value > 0) {
+    value -= 1;
+    code = alphabet[value % alphabet.length] + code;
+    value = Math.floor(value / alphabet.length);
+  }
+
+  return "FunZona-" + code;
+}
+
 function createFreeKassaPaymentUrl(orderId: number, amountValue: number, userLogin: string) {
+  const paymentOrderId = encodePaymentOrderId(orderId);
   const merchantId = process.env.FREEKASSA_MERCHANT_ID;
   const secret = process.env.FREEKASSA_SECRET_1;
   const currency = process.env.FREEKASSA_CURRENCY || "RUB";
@@ -105,13 +120,14 @@ function createFreeKassaPaymentUrl(orderId: number, amountValue: number, userLog
 
   const amount = amountValue.toFixed(2);
   const signature = md5(
-    merchantId + ":" + amount + ":" + secret + ":" + currency + ":" + orderId
+    merchantId + ":" + amount + ":" + secret + ":" + currency + ":" + paymentOrderId
   );
   const url = new URL("https://pay.fk.money/");
 
   url.searchParams.set("m", merchantId);
   url.searchParams.set("oa", amount);
-  url.searchParams.set("o", String(orderId));
+  url.searchParams.set("o", paymentOrderId);
+  url.searchParams.set("us_order_id", String(orderId));
   url.searchParams.set("s", signature);
   url.searchParams.set("currency", currency);
   url.searchParams.set("i", paymentMethod);

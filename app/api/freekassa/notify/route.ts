@@ -20,6 +20,20 @@ function text(value: FormDataEntryValue | string | null | undefined) {
   return String(value || "").trim();
 }
 
+function decodePaymentOrderId(value: string) {
+  if (/^\d+$/.test(value)) return Number(value);
+
+  const match = value.match(/^(?:FZ|FunZona)-([A-Z]+)$/);
+  if (!match) return 0;
+
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  return match[1].split("").reduce((sum, letter) => {
+    const index = alphabet.indexOf(letter);
+    return index === -1 ? sum : sum * alphabet.length + index + 1;
+  }, 0);
+}
+
 async function sendOwnerTelegram(text: string) {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -65,7 +79,9 @@ async function handleNotify(req: Request) {
   const fields = await readFreeKassaPayload(req);
   const merchantId = text(fields.get("MERCHANT_ID") || fields.get("m"));
   const amount = text(fields.get("AMOUNT") || fields.get("oa"));
-  const orderId = text(fields.get("MERCHANT_ORDER_ID") || fields.get("o"));
+  const orderCode = text(fields.get("MERCHANT_ORDER_ID") || fields.get("o"));
+  const rawOrderId = text(fields.get("us_order_id"));
+  const orderId = rawOrderId ? Number(rawOrderId) : decodePaymentOrderId(orderCode);
   const sign = text(fields.get("SIGN") || fields.get("s")).toLowerCase();
   const expectedMerchantId = process.env.FREEKASSA_MERCHANT_ID || "";
   const secret2 = process.env.FREEKASSA_SECRET_2 || "";
@@ -85,12 +101,12 @@ async function handleNotify(req: Request) {
     return new NextResponse("WRONG MERCHANT", { status: 400 });
   }
 
-  if (!amount || !orderId || !sign) {
+  if (!amount || !orderId || !orderCode || !sign) {
     return new NextResponse("NO REQUIRED FIELDS", { status: 400 });
   }
 
   const expectedSign = md5(
-    merchantId + ":" + amount + ":" + secret2 + ":" + orderId
+    merchantId + ":" + amount + ":" + secret2 + ":" + orderCode
   ).toLowerCase();
 
   if (sign !== expectedSign) {
@@ -99,7 +115,7 @@ async function handleNotify(req: Request) {
   }
 
   const order = await prisma.order.findUnique({
-    where: { id: Number(orderId) },
+    where: { id: orderId },
   });
 
   if (!order) {
