@@ -1,6 +1,7 @@
 import { prisma } from "@/app/lib/prisma";
 import { verifyToken } from "@/app/lib/auth";
 import { cookies } from "next/headers";
+import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -89,6 +90,34 @@ function buildItemsText(items: Required<OrderItemInput>[]) {
     .join("\n");
 }
 
+function md5(value: string) {
+  return crypto.createHash("md5").update(value).digest("hex");
+}
+
+function createFreeKassaPaymentUrl(orderId: number, amountValue: number, userLogin: string) {
+  const merchantId = process.env.FREEKASSA_MERCHANT_ID;
+  const secret = process.env.FREEKASSA_SECRET_1;
+  const currency = process.env.FREEKASSA_CURRENCY || "RUB";
+
+  if (!merchantId || !secret) return null;
+
+  const amount = amountValue.toFixed(2);
+  const signature = md5(
+    merchantId + ":" + amount + ":" + secret + ":" + currency + ":" + orderId
+  );
+  const url = new URL("https://pay.fk.money/");
+
+  url.searchParams.set("m", merchantId);
+  url.searchParams.set("oa", amount);
+  url.searchParams.set("o", String(orderId));
+  url.searchParams.set("s", signature);
+  url.searchParams.set("currency", currency);
+  url.searchParams.set("lang", "ru");
+  url.searchParams.set("us_login", userLogin.replace(/[^a-zA-Z0-9_-]/g, "_"));
+
+  return url.toString();
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -154,6 +183,9 @@ export async function POST(req: Request) {
         userLogin,
       },
     });
+
+    const paymentAmount = items.length > 0 ? totalFromItems : priceToNumber(productPrice);
+    const paymentUrl = createFreeKassaPaymentUrl(order.id, paymentAmount, userLogin);
 
     const siteChatMessage =
       "🛒 Новый заказ #" +
@@ -228,7 +260,10 @@ export async function POST(req: Request) {
       );
     }
 
-    return NextResponse.json(order);
+    return NextResponse.json({
+      ...order,
+      paymentUrl,
+    });
   } catch (error: any) {
     console.log("ORDER ERROR:", error);
 

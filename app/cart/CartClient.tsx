@@ -122,7 +122,7 @@ export default function CartClient() {
     }
 
     localStorage.removeItem("cart");
-    window.location.href = "/support?order=" + data.id;
+    window.location.href = data.paymentUrl || "/support?order=" + data.id;
   }
 
   if (cart.length === 0) {
@@ -300,11 +300,11 @@ export default function CartClient() {
             disabled={loading || cart.length === 0}
             className="w-full rounded-2xl bg-[linear-gradient(135deg,#7c3aed,#ec4899)] px-5 py-5 text-xl font-black text-white shadow-2xl shadow-violet-900/30 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "Оформляем..." : "Оформить заказ " + formatRub(total)}
+            {loading ? "Оформляем..." : "Перейти к оплате " + formatRub(total)}
           </button>
 
           <p className="text-center text-xs font-bold text-gray-500">
-            После оформления тебя сразу перекинет в чат по этому заказу.
+            После оплаты тебя вернет в чат, а заказ автоматически станет оплаченным.
           </p>
         </div>
       </aside>
