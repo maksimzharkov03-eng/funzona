@@ -83,13 +83,21 @@ function pickString(body: string, field: string) {
 
 function pickImage(body: string) {
   const media = Array.from(
-    body.matchAll(
-      /"type":"IMAGE","url":"(https:\/\/image\.api\.playstation\.com[^"]+?)","role":"([^"]+)"/gi
-    )
-  ).map((match) => ({
-    url: decodeJsonString(match[1]),
-    role: decodeJsonString(match[2]).toUpperCase(),
-  }));
+    body.matchAll(/\{"__typename":"Media"[\s\S]*?\}/g)
+  )
+    .map((match) => {
+      const block = match[0];
+      return {
+        type: pickString(block, "type").toUpperCase(),
+        url: pickString(block, "url"),
+        role: pickString(block, "role").toUpperCase(),
+      };
+    })
+    .filter(
+      (item) =>
+        item.type === "IMAGE" &&
+        item.url.startsWith("https://image.api.playstation.com/")
+    );
 
   const rolePriority = [
     "GAMEHUB_COVER_ART",
