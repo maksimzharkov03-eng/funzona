@@ -90,35 +90,43 @@ export default function CartClient() {
 
     setLoading(true);
 
-    for (const item of cart) {
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId: item.id,
-          productName: item.name,
-          productPrice: item.price,
-          userLogin,
-          telegram,
-          payment: "СБП",
-          comment:
-            comment +
-            (email ? "\nEmail для получения: " + email : ""),
-        }),
-      });
+    const items = groupedCart.map(({ item, quantity }) => ({
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      description: item.description,
+      price: item.price,
+      quantity,
+      totalPrice: formatRub(priceToNumber(item.price) * quantity),
+    }));
 
-      const data = await res.json();
+    const res = await fetch("/api/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userLogin,
+        telegram,
+        payment: "СБП",
+        productName: "Заказ из " + cart.length + " товаров",
+        productPrice: formatRub(total),
+        items,
+        comment:
+          comment +
+          (email ? "\nEmail для получения: " + email : ""),
+      }),
+    });
 
-      if (!res.ok) {
-        alert(data.error || "Ошибка создания заказа");
-        if (res.status === 401) {
-          window.location.href = "/login";
-        }
-        setLoading(false);
-        return;
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Ошибка создания заказа");
+      if (res.status === 401) {
+        window.location.href = "/login";
       }
+      setLoading(false);
+      return;
     }
 
     localStorage.removeItem("cart");
