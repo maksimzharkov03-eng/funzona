@@ -1,15 +1,18 @@
 import { prisma } from "@/app/lib/prisma";
 import { calculateRubPrice, demoGames, roundTryPrice } from "@/app/lib/games";
 import { storeGames } from "@/app/data/ps-store-games";
+import { getPlayStationStoreCatalog } from "@/app/lib/ps-store-catalog";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
+    const storeCatalog = await getPlayStationStoreCatalog();
+    const baseCatalog = storeCatalog.length > 0 ? storeCatalog : storeGames;
     const games = await prisma.game.findMany({
       orderBy: [{ isFeatured: "desc" }, { id: "desc" }],
     });
     const existingTitles = new Set(
-      storeGames.map((game) => `${game.region}:${game.title}`.trim().toLowerCase())
+      baseCatalog.map((game) => `${game.region}:${game.title}`.trim().toLowerCase())
     );
     const customGames = games.filter(
       (game) =>
@@ -19,7 +22,7 @@ export async function GET() {
         Number(game.rubPrice) > 0
     );
 
-    return NextResponse.json([...storeGames, ...customGames]);
+    return NextResponse.json([...baseCatalog, ...customGames]);
   } catch (error) {
     console.log("GAME LOAD ERROR:", error);
     return NextResponse.json(storeGames.length > 0 ? storeGames : demoGames);

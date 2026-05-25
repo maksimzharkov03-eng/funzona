@@ -1,6 +1,7 @@
 import { prisma } from "@/app/lib/prisma";
 import { demoGames } from "@/app/lib/games";
 import { storeGames } from "@/app/data/ps-store-games";
+import { getPlayStationStoreCatalog } from "@/app/lib/ps-store-catalog";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -21,7 +22,8 @@ export async function GET(
   }
 
   const fallback = demoGames.find((game) => game.id === gameId);
-  const psStoreGame = storeGames.find((game) => game.id === gameId);
+  const storeCatalog = await getPlayStationStoreCatalog();
+  const psStoreGame = [...storeCatalog, ...storeGames].find((game) => game.id === gameId);
 
   if (psStoreGame) {
     return NextResponse.json(psStoreGame);
