@@ -283,7 +283,7 @@ export default function CheckoutPage() {
                   </p>
                   <div className="mt-3 grid sm:grid-cols-2 gap-3">
                     {[
-                      { id: "СБП", title: "СБП", subtitle: "0% комиссия" },
+                      { id: "СБП", title: "СБП", subtitle: "2,5% комиссия клиента" },
                     ].map((method) => (
                       <button
                         key={method.id}

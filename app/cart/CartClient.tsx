@@ -44,6 +44,9 @@ export default function CartClient() {
     return sum + priceToNumber(item.price);
   }, 0);
 
+  const sbpFee = Math.ceil(total * 0.025);
+  const paymentTotal = total + sbpFee;
+
   function saveCart(updated: any[]) {
     setCart(updated);
     localStorage.setItem("cart", JSON.stringify(updated));
@@ -244,10 +247,22 @@ export default function CartClient() {
 
         <div className="mt-6 rounded-2xl border border-yellow-400/20 bg-yellow-400/10 p-4">
           <div className="flex items-center justify-between">
-            <span className="font-black text-gray-300">Итого</span>
+            <span className="font-black text-gray-300">Сумма заказа</span>
             <span className="text-3xl font-black text-yellow-400">
               {formatRub(total)}
             </span>
+          </div>
+          <div className="mt-4 space-y-2 border-t border-yellow-400/20 pt-4 text-sm font-bold">
+            <div className="flex items-center justify-between text-gray-400">
+              <span>Комиссия СБП 2,5%</span>
+              <span>{formatRub(sbpFee)}</span>
+            </div>
+            <div className="flex items-center justify-between text-white">
+              <span>К оплате</span>
+              <span className="text-xl font-black text-yellow-400">
+                {formatRub(paymentTotal)}
+              </span>
+            </div>
           </div>
           <p className="mt-2 text-xs font-bold text-gray-500">
             Товаров: {cart.length} • Позиций: {groupedCart.length}
@@ -278,7 +293,7 @@ export default function CartClient() {
             </p>
             <div className="mt-3 rounded-2xl border border-emerald-500 bg-emerald-500/10 p-4">
               <p className="font-black">СБП</p>
-              <p className="mt-1 text-xs font-bold text-gray-400">0% комиссия</p>
+              <p className="mt-1 text-xs font-bold text-gray-400">2,5% комиссия клиента</p>
             </div>
           </div>
 
@@ -300,7 +315,7 @@ export default function CartClient() {
             disabled={loading || cart.length === 0}
             className="w-full rounded-2xl bg-[linear-gradient(135deg,#7c3aed,#ec4899)] px-5 py-5 text-xl font-black text-white shadow-2xl shadow-violet-900/30 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "Оформляем..." : "Перейти к оплате " + formatRub(total)}
+            {loading ? "Оформляем..." : "Перейти к оплате " + formatRub(paymentTotal)}
           </button>
 
           <p className="text-center text-xs font-bold text-gray-500">

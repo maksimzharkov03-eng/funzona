@@ -40,6 +40,12 @@ function formatRub(value: number) {
   return new Intl.NumberFormat("ru-RU").format(value) + " ₽";
 }
 
+const SBP_FEE_RATE = 0.025;
+
+function calculateSbpClientFee(amount: number) {
+  return Math.ceil(Math.max(0, amount) * SBP_FEE_RATE);
+}
+
 type OrderItemInput = {
   name?: string;
   category?: string;
@@ -202,6 +208,8 @@ export async function POST(req: Request) {
         status: "Ожидает оплаты",
         telegram: body.telegram || "Чат на сайте",
         payment: body.payment || "Не указано",
+        paymentAmount: formatRub(paymentAmount),
+        paymentFee: formatRub(paymentFee),
         comment: orderComment,
         productName,
         productPrice,
@@ -209,7 +217,10 @@ export async function POST(req: Request) {
       },
     });
 
-    const paymentAmount = items.length > 0 ? totalFromItems : priceToNumber(productPrice);
+    const basePaymentAmount = items.length > 0 ? totalFromItems : priceToNumber(productPrice);
+    const paymentFee =
+      (body.payment || "СБП") === "СБП" ? calculateSbpClientFee(basePaymentAmount) : 0;
+    const paymentAmount = basePaymentAmount + paymentFee;
     const paymentUrl = createFreeKassaPaymentUrl(order.id, paymentAmount, userLogin);
 
     const siteChatMessage =
@@ -219,8 +230,14 @@ export async function POST(req: Request) {
       "Покупатель: " +
       userLogin +
       "\n" +
-      "Сумма: " +
+      "Сумма заказа: " +
       productPrice +
+      "\n" +
+      "Комиссия СБП: " +
+      formatRub(paymentFee) +
+      "\n" +
+      "К оплате: " +
+      formatRub(paymentAmount) +
       "\n" +
       "Оплата: " +
       (body.payment || "Не указано") +

@@ -11,6 +11,8 @@ function buildPaidOrderTelegramText(order: {
   id: number;
   productName: string;
   productPrice: string;
+  paymentAmount: string | null;
+  paymentFee: string | null;
   userLogin: string | null;
   telegram: string;
   payment: string;
@@ -24,9 +26,14 @@ function buildPaidOrderTelegramText(order: {
     "📦 " +
     order.productName +
     "\n" +
-    "💰 Итого: " +
+    "💰 Сумма заказа: " +
     order.productPrice +
-    "\n\n" +
+    "\n" +
+    (order.paymentAmount
+      ? "💳 К оплате с комиссией: " + order.paymentAmount + "\n"
+      : "") +
+    (order.paymentFee ? "🏦 Комиссия СБП: " + order.paymentFee + "\n" : "") +
+    "\n" +
     (order.comment ? "🧾 " + order.comment + "\n\n" : "") +
     "👤 Логин клиента: " +
     (order.userLogin || "не указан") +
@@ -155,7 +162,7 @@ async function handleNotify(req: Request) {
     return new NextResponse("ORDER NOT FOUND", { status: 404 });
   }
 
-  const expectedCents = priceToCents(order.productPrice);
+  const expectedCents = priceToCents(order.paymentAmount || order.productPrice);
   const paidCents = priceToCents(amount);
 
   if (expectedCents !== paidCents) {
