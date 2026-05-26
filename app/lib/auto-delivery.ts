@@ -235,16 +235,60 @@ function rubFromPrice(price: string) {
   return Number(String(price || "0").replace(/\D/g, "")) || 0;
 }
 
-function serviceCostUsd(service: NsResolvedService, quantity: number) {
-  const rawCost =
-    service.price_usd ??
-    service.usd_price ??
-    service.priceUSD ??
-    service.cost_usd ??
-    service.costUsd ??
-    service.price;
+function firstCostValue(...values: unknown[]) {
+  for (const value of values) {
+    const parsed = numberFromNsValue(value);
 
-  return Math.round(numberFromNsValue(rawCost) * Math.max(1, quantity) * 100) / 100;
+    if (parsed > 0) return parsed;
+  }
+
+  return 0;
+}
+
+function serviceCostUsd(service: NsResolvedService, quantity: number) {
+  const unitCost = firstCostValue(
+    service.price_usd,
+    service.usd_price,
+    service.priceUSD,
+    service.cost_usd,
+    service.costUsd,
+    service.purchase_price_usd,
+    service.purchasePriceUsd,
+    service.supplier_price_usd,
+    service.supplierPriceUsd,
+    service.wholesale_price_usd,
+    service.wholesalePriceUsd,
+    service.balance_price,
+    service.balancePrice,
+    service.price
+  );
+
+  return Math.round(unitCost * Math.max(1, quantity) * 100) / 100;
+}
+
+function responseCostUsd(response: Record<string, unknown>, quantity: number) {
+  const totalCost = firstCostValue(
+    response.cost_usd,
+    response.costUsd,
+    response.total_cost_usd,
+    response.totalCostUsd,
+    response.amount_usd,
+    response.amountUsd,
+    response.price_usd,
+    response.priceUsd
+  );
+
+  if (totalCost > 0) return Math.round(totalCost * 100) / 100;
+
+  const unitCost = firstCostValue(
+    response.unit_cost_usd,
+    response.unitCostUsd,
+    response.purchase_price_usd,
+    response.purchasePriceUsd,
+    response.price
+  );
+
+  return Math.round(unitCost * Math.max(1, quantity) * 100) / 100;
 }
 
 function parseRegion(value: string) {
@@ -407,14 +451,23 @@ async function purchaseItem(orderId: number, item: OrderItem, index: number) {
     status: string;
     pins?: string[];
     note?: string | null;
+    [key: string]: unknown;
   }>("POST", "/api/v2/pay_order", {
     custom_id: customId,
   });
 
   let pins = paid.pins || [];
+  let info:
+    | {
+        status: number;
+        status_message?: string;
+        pins?: string[];
+        [key: string]: unknown;
+      }
+    | null = null;
 
   if (paid.status === "in_progress") {
-    const info = await pollOrderInfo(customId);
+    info = await pollOrderInfo(customId);
     pins = info?.pins || pins;
 
     if (info && info.status !== 2) {
@@ -438,7 +491,10 @@ async function purchaseItem(orderId: number, item: OrderItem, index: number) {
     item,
     service,
     customId,
-    costUsd: serviceCostUsd(service, item.quantity),
+    costUsd:
+      responseCostUsd(paid, item.quantity) ||
+      responseCostUsd(info || {}, item.quantity) ||
+      serviceCostUsd(service, item.quantity),
     pins,
   };
 }
