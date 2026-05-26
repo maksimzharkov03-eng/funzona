@@ -202,6 +202,10 @@ export async function POST(req: Request) {
     }
 
     const orderComment = commentParts.join("\n\n");
+    const basePaymentAmount = items.length > 0 ? totalFromItems : priceToNumber(productPrice);
+    const paymentFee =
+      (body.payment || "СБП") === "СБП" ? calculateSbpClientFee(basePaymentAmount) : 0;
+    const paymentAmount = basePaymentAmount + paymentFee;
 
     const order = await prisma.order.create({
       data: {
@@ -217,10 +221,6 @@ export async function POST(req: Request) {
       },
     });
 
-    const basePaymentAmount = items.length > 0 ? totalFromItems : priceToNumber(productPrice);
-    const paymentFee =
-      (body.payment || "СБП") === "СБП" ? calculateSbpClientFee(basePaymentAmount) : 0;
-    const paymentAmount = basePaymentAmount + paymentFee;
     const paymentUrl = createFreeKassaPaymentUrl(order.id, paymentAmount, userLogin);
 
     const siteChatMessage =
