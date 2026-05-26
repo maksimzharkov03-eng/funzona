@@ -29,7 +29,7 @@ const sortOptions: { value: SortMode; label: string }[] = [
   { value: "price-desc", label: "Дороже" },
 ];
 
-const gamesPageSize = 48;
+const gamesPageSize = 40;
 
 const genreOptions: GenreFilter[] = [
   "Все",
@@ -83,10 +83,27 @@ function normalizeGameTitle(value: string) {
     .trim();
 }
 
+function isBadCatalogGame(game: MarketplaceGame) {
+  const text = [game.title, game.publisher].filter(Boolean).join(" ").toLowerCase();
+  const image = String(game.image || "").toLowerCase();
+
+  return (
+    text.includes("aca neogeo") ||
+    text.includes("arcade archives") ||
+    text.includes("johnny turbo") ||
+    text.includes("hamster") ||
+    image.includes("placeholder") ||
+    image.includes("noimage") ||
+    image.includes("missing")
+  );
+}
+
 function dedupeGames(games: MarketplaceGame[]) {
   const map = new Map<string, MarketplaceGame>();
 
   for (const game of games) {
+    if (isBadCatalogGame(game)) continue;
+
     const key = [normalizeGameTitle(game.title), game.platform, game.region].join("|");
     const existing = map.get(key);
 
@@ -145,7 +162,7 @@ function GameImage({
       <div
         className={`${className} flex flex-col items-center justify-center bg-[radial-gradient(circle_at_top,#ffd40033,transparent_42%),linear-gradient(145deg,#171100,#050505)] p-5 text-center`}
       >
-        <span className="text-5xl mb-4">🎮</span>
+        <span className="text-4xl mb-4">🎮</span>
         <span className="text-yellow-400 font-black leading-tight line-clamp-3">
           {title}
         </span>
@@ -585,12 +602,12 @@ export default function GamesPage() {
                 >
                   <Link
                     href={`/games/${game.id}`}
-                    className="relative block h-72 sm:h-80 overflow-hidden bg-yellow-400/10"
+                    className="relative block h-72 sm:h-80 overflow-hidden bg-[radial-gradient(circle_at_top,#ffd40022,transparent_45%),#050505]"
                   >
                     <GameImage
                       src={getGameCover(game)}
                       title={game.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                      className="w-full h-full object-contain transition duration-500"
                     />
 
                     <div className="absolute top-4 left-4 right-4 flex flex-wrap gap-2">

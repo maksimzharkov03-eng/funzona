@@ -4,6 +4,60 @@ import { storeGames } from "@/app/data/ps-store-games";
 import { getPlayStationStoreCatalog } from "@/app/lib/ps-store-catalog";
 import { NextResponse } from "next/server";
 
+function normalizeGameTitle(value: string) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[™®©]/g, "")
+    .replace(/\b(standard|ultimate|deluxe|premium|edition|издание|стандартное|ультимейт|делюкс)\b/g, "")
+    .replace(/[^a-zа-я0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isBadCatalogGame(game: { title?: string | null; image?: string | null; publisher?: string | null }) {
+  const text = [game.title, game.publisher].filter(Boolean).join(" ").toLowerCase();
+  const image = String(game.image || "").toLowerCase();
+
+  return (
+    text.includes("aca neogeo") ||
+    text.includes("arcade archives") ||
+    text.includes("johnny turbo") ||
+    text.includes("hamster") ||
+    image.includes("placeholder") ||
+    image.includes("noimage") ||
+    image.includes("missing")
+  );
+}
+
+function dedupeCatalog<T extends { title: string; platform: string; region: string; image?: string | null; isFeatured?: boolean | null; discountPercent?: number | null }>(games: T[]) {
+  const map = new Map<string, T>();
+
+  for (const game of games) {
+    if (isBadCatalogGame(game)) continue;
+
+    const key = [normalizeGameTitle(game.title), game.platform, game.region].join("|");
+    const existing = map.get(key);
+
+    if (!existing) {
+      map.set(key, game);
+      continue;
+    }
+
+    const existingScore =
+      Number(existing.isFeatured || 0) * 100000 +
+      Number(existing.discountPercent || 0) * 100 +
+      Number(Boolean(existing.image));
+    const nextScore =
+      Number(game.isFeatured || 0) * 100000 +
+      Number(game.discountPercent || 0) * 100 +
+      Number(Boolean(game.image));
+
+    if (nextScore > existingScore) map.set(key, game);
+  }
+
+  return Array.from(map.values());
+}
+
 const apiCacheHeaders = {
   "Cache-Control": "public, max-age=900, s-maxage=86400, stale-while-revalidate=604800",
 };
@@ -26,7 +80,7 @@ export async function GET() {
         Number(game.rubPrice) > 0
     );
 
-    return NextResponse.json([...baseCatalog, ...customGames], { headers: apiCacheHeaders });
+    return NextResponse.json(dedupeCatalog([...baseCatalog, ...customGames]), { headers: apiCacheHeaders });
   } catch (error) {
     console.log("GAME LOAD ERROR:", error);
     return NextResponse.json(storeGames.length > 0 ? storeGames : demoGames, { headers: apiCacheHeaders });

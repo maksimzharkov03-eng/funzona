@@ -48,6 +48,43 @@ const blockedGameTitles = [
   "сталкер 2",
 ];
 
+const blockedTitleParts = [
+  "aca neogeo",
+  "arcade archives",
+  "archives series",
+  "the king of fighters '",
+  "the king of fighters 94",
+  "the king of fighters 95",
+  "the king of fighters 96",
+  "the king of fighters 97",
+  "the king of fighters 98",
+  "the king of fighters 99",
+  "the king of fighters 2000",
+  "the king of fighters 2001",
+  "the king of fighters 2002",
+  "the king of fighters 2003",
+  "samurai shodown ii",
+  "samurai shodown iii",
+  "samurai shodown iv",
+  "fatal fury",
+  "metal slug 1",
+  "metal slug 2",
+  "metal slug 3",
+  "metal slug 4",
+  "metal slug 5",
+  "johnny turbo's arcade",
+  "hamster",
+];
+
+const blockedPublisherParts = ["hamster", "arcade archives"];
+
+const badImageParts = [
+  "/ps4_",
+  "placeholder",
+  "missing",
+  "noimage",
+];
+
 const skipWords = [
   "add-on",
   "avatar",
@@ -187,6 +224,16 @@ function normalizePlatform(body: string) {
   return "PS4/PS5";
 }
 
+function hasBadCatalogImage(product: ParsedProduct) {
+  const image = product.image.toLowerCase();
+  const title = product.name.toLowerCase();
+
+  if (badImageParts.some((part) => image.includes(part))) return true;
+  if (!image.includes("image.api.playstation.com")) return true;
+
+  return false;
+}
+
 function shouldSkipProduct(product: ParsedProduct) {
   if (!product.image || !product.platform || product.price <= 0) return true;
 
@@ -194,6 +241,14 @@ function shouldSkipProduct(product: ParsedProduct) {
     .toLowerCase()
     .replace(/[^a-zа-яё0-9]+/gi, " ")
     .trim();
+
+  if (blockedTitleParts.some((part) => normalizedTitle.includes(part))) {
+    return true;
+  }
+
+  if (hasBadCatalogImage(product)) {
+    return true;
+  }
 
   if (
     blockedGameTitles.some((title) => {
@@ -216,6 +271,10 @@ function shouldSkipProduct(product: ParsedProduct) {
     .join(" ")
     .toLowerCase();
   const classification = text.toUpperCase();
+
+  if (blockedPublisherParts.some((part) => text.includes(part))) {
+    return true;
+  }
 
   if (
     /ADD[_-]ON|VIRTUAL[_-]CURRENCY|CHARACTER|COSTUME|AVATAR|THEME|SOUNDTRACK|CONSUMABLE/.test(
@@ -442,6 +501,6 @@ async function loadPlayStationStoreCatalog() {
 
 export const getPlayStationStoreCatalog = unstable_cache(
   loadPlayStationStoreCatalog,
-  ["ps-store-full-browse-catalog-v3"],
+  ["ps-store-full-browse-catalog-v4"],
   { revalidate: cacheSeconds }
 );
