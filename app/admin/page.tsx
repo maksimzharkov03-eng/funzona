@@ -5,10 +5,11 @@ import AdminChat from "./AdminChat";
 import AdminGames from "./AdminGames";
 import AdminProducts from "./AdminProducts";
 
-type AdminTab = "orders" | "chat" | "products" | "games";
+type AdminTab = "orders" | "delivery" | "chat" | "products" | "games";
 
 const tabs: { id: AdminTab; label: string; hint: string }[] = [
   { id: "orders", label: "Заказы", hint: "Статусы и оплата" },
+  { id: "delivery", label: "Автовыдача", hint: "NS Gifts" },
   { id: "chat", label: "Чат", hint: "Клиенты" },
   { id: "products", label: "Товары и подписки", hint: "Каталог" },
   { id: "games", label: "Игры", hint: "PS Store" },
@@ -127,6 +128,33 @@ export default function AdminPage() {
     return "bg-gray-500 text-white";
   }
 
+  function priceToNumber(price: string) {
+    return Number(String(price || "0").replace(/\D/g, "")) || 0;
+  }
+
+  function formatRub(value: number) {
+    return new Intl.NumberFormat("ru-RU").format(Math.round(value)) + " ₽";
+  }
+
+  function formatUsd(value: number) {
+    return (
+      "$" +
+      new Intl.NumberFormat("ru-RU", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value || 0)
+    );
+  }
+
+  function isAutoDeliveryOrder(order: any) {
+    return Boolean(
+      order.autoDeliveryAt ||
+        order.autoDeliveryProvider ||
+        Number(order.autoDeliveryCostUsd || 0) > 0 ||
+        String(order.deliveryData || "").includes("Поставщик:")
+    );
+  }
+
   const totalOrders = orders.length;
 
   const paidOrders = orders.filter(
@@ -156,8 +184,19 @@ export default function AdminPage() {
         order.status === "Выдан"
     )
     .reduce((sum, order) => {
-      return sum + Number(String(order.productPrice || "0").replace(/\D/g, ""));
+      return sum + priceToNumber(order.productPrice);
     }, 0);
+
+  const autoDeliveryOrders = orders.filter(isAutoDeliveryOrder);
+  const autoDeliveryCostUsd = autoDeliveryOrders.reduce(
+    (sum, order) => sum + Number(order.autoDeliveryCostUsd || 0),
+    0
+  );
+  const autoDeliveryRevenueRub = autoDeliveryOrders.reduce(
+    (sum, order) =>
+      sum + Number(order.autoDeliveryRevenueRub || priceToNumber(order.productPrice)),
+    0
+  );
 
   const filteredOrders =
     filter === "Все"
@@ -210,7 +249,28 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-3">
+          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4">
+            <p className="text-sm text-gray-400">Автовыдача</p>
+            <h3 className="mt-2 text-3xl font-black text-emerald-400">
+              {autoDeliveryOrders.length}
+            </h3>
+          </div>
+          <div className="rounded-2xl border border-yellow-400/20 bg-white/5 p-4">
+            <p className="text-sm text-gray-400">Получено в кассу</p>
+            <h3 className="mt-2 text-3xl font-black text-yellow-400">
+              {formatRub(autoDeliveryRevenueRub)}
+            </h3>
+          </div>
+          <div className="rounded-2xl border border-blue-400/20 bg-white/5 p-4">
+            <p className="text-sm text-gray-400">Потрачено в NS Gifts</p>
+            <h3 className="mt-2 text-3xl font-black text-blue-400">
+              {formatUsd(autoDeliveryCostUsd)}
+            </h3>
+          </div>
+        </div>
+
+        <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -364,6 +424,98 @@ export default function AdminPage() {
                           </div>
                         </details>
                       </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        ) : null}
+
+        {activeTab === "delivery" ? (
+          <section className="rounded-3xl border border-yellow-400/20 bg-white/5 p-4 sm:p-6">
+            <div className="mb-6 flex flex-col gap-2">
+              <p className="text-sm font-black uppercase text-yellow-400">
+                NS Gifts
+              </p>
+              <h2 className="text-3xl font-black">Автовыдача кодов</h2>
+              <p className="max-w-2xl text-gray-400">
+                Здесь видны только заказы, которые были выданы автоматически через
+                поставщика. Себестоимость не показывается клиенту.
+              </p>
+            </div>
+
+            <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-3">
+              <div className="rounded-2xl bg-yellow-400 p-5 text-black">
+                <p className="text-sm font-black text-black/60">Получено</p>
+                <h3 className="mt-2 text-3xl font-black">
+                  {formatRub(autoDeliveryRevenueRub)}
+                </h3>
+              </div>
+              <div className="rounded-2xl border border-blue-400/20 bg-black p-5">
+                <p className="text-sm text-gray-400">Потрачено NS</p>
+                <h3 className="mt-2 text-3xl font-black text-blue-400">
+                  {formatUsd(autoDeliveryCostUsd)}
+                </h3>
+              </div>
+              <div className="rounded-2xl border border-emerald-400/20 bg-black p-5">
+                <p className="text-sm text-gray-400">Заказов</p>
+                <h3 className="mt-2 text-3xl font-black text-emerald-400">
+                  {autoDeliveryOrders.length}
+                </h3>
+              </div>
+            </div>
+
+            {autoDeliveryOrders.length === 0 ? (
+              <div className="rounded-3xl border border-white/10 bg-black p-8 text-center text-gray-400">
+                Автовыдач пока нет
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {autoDeliveryOrders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="grid gap-4 rounded-2xl border border-white/10 bg-black p-4 lg:grid-cols-[1fr_auto_auto_auto]"
+                  >
+                    <div>
+                      <p className="text-lg font-black text-yellow-400">
+                        Заказ #{order.id}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-400">
+                        {order.productName}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {order.autoDeliveryAt
+                          ? new Date(order.autoDeliveryAt).toLocaleString()
+                          : new Date(order.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400">Касса</p>
+                      <p className="text-xl font-black text-yellow-400">
+                        {formatRub(
+                          Number(
+                            order.autoDeliveryRevenueRub ||
+                              priceToNumber(order.productPrice)
+                          )
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400">NS Gifts</p>
+                      <p className="text-xl font-black text-blue-400">
+                        {formatUsd(Number(order.autoDeliveryCostUsd || 0))}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400">Статус</p>
+                      <span
+                        className={`mt-1 inline-flex rounded-full px-3 py-1 text-sm font-black ${getStatusClass(
+                          order.status
+                        )}`}
+                      >
+                        {order.status}
+                      </span>
                     </div>
                   </div>
                 ))}

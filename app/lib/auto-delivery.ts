@@ -8,6 +8,10 @@ type AutoDeliveryOrder = {
   comment: string | null;
   status: string;
   deliveryData: string | null;
+  autoDeliveryProvider?: string | null;
+  autoDeliveryCostUsd?: number | null;
+  autoDeliveryRevenueRub?: number | null;
+  autoDeliveryAt?: Date | string | null;
   userLogin: string | null;
   telegram: string;
   payment: string;
@@ -24,6 +28,7 @@ type NsStockService = {
   price?: number | string;
   currency?: string;
   in_stock?: number;
+  [key: string]: unknown;
 };
 
 type NsStockCategory = {
@@ -56,11 +61,11 @@ let stockCache: { expiresAt: number; data: NsStockResponse | null } = {
 
 function getNsConfig() {
   return {
-    baseUrl: process.env.NS_GIFTS_BASE_URL || "https://api.ns.gifts",
-    userId: process.env.NS_GIFTS_USER_ID || "",
-    login: process.env.NS_GIFTS_LOGIN || "",
-    password: process.env.NS_GIFTS_PASSWORD || "",
-    apiSecret: process.env.NS_GIFTS_API_SECRET || "",
+    baseUrl: (process.env.NS_GIFTS_BASE_URL || "https://api.ns.gifts").trim(),
+    userId: (process.env.NS_GIFTS_USER_ID || "").trim(),
+    login: (process.env.NS_GIFTS_LOGIN || "").trim(),
+    password: (process.env.NS_GIFTS_PASSWORD || "").trim(),
+    apiSecret: (process.env.NS_GIFTS_API_SECRET || "").trim(),
   };
 }
 
@@ -211,6 +216,35 @@ function parseAmountCurrency(value: string) {
             ? "uah"
             : currency,
   };
+}
+
+function numberFromNsValue(value: unknown) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+
+  return (
+    Number(
+      String(value || "0")
+        .replace(/\s/g, "")
+        .replace(",", ".")
+        .replace(/[^\d.]/g, "")
+    ) || 0
+  );
+}
+
+function rubFromPrice(price: string) {
+  return Number(String(price || "0").replace(/\D/g, "")) || 0;
+}
+
+function serviceCostUsd(service: NsResolvedService, quantity: number) {
+  const rawCost =
+    service.price_usd ??
+    service.usd_price ??
+    service.priceUSD ??
+    service.cost_usd ??
+    service.costUsd ??
+    service.price;
+
+  return Math.round(numberFromNsValue(rawCost) * Math.max(1, quantity) * 100) / 100;
 }
 
 function parseRegion(value: string) {
@@ -404,6 +438,7 @@ async function purchaseItem(orderId: number, item: OrderItem, index: number) {
     item,
     service,
     customId,
+    costUsd: serviceCostUsd(service, item.quantity),
     pins,
   };
 }
@@ -482,11 +517,20 @@ export async function attemptAutoDeliveryForOrder(
 
   const deliveryData = buildDeliveryData(purchases);
   const fullDelivery = skippedItems.length === 0;
+  const autoDeliveryCostUsd =
+    Math.round(
+      purchases.reduce((sum, purchase) => sum + Number(purchase.costUsd || 0), 0) * 100
+    ) / 100;
+  const autoDeliveryRevenueRub = rubFromPrice(order.productPrice);
   const updatedOrder = await prisma.order.update({
     where: { id: order.id },
     data: {
       status: fullDelivery ? "Выдан" : "В работе",
       deliveryData,
+      autoDeliveryProvider: "NS Gifts",
+      autoDeliveryCostUsd,
+      autoDeliveryRevenueRub,
+      autoDeliveryAt: new Date(),
     },
   });
 
