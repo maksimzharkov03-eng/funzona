@@ -213,36 +213,6 @@ export async function POST(req: Request) {
     const paymentAmount = items.length > 0 ? totalFromItems : priceToNumber(productPrice);
     const paymentUrl = createFreeKassaPaymentUrl(order.id, paymentAmount, userLogin);
 
-    const siteChatMessage =
-      "🛒 Новый заказ #" +
-      order.id +
-      "\n\n" +
-      "Покупатель: " +
-      userLogin +
-      "\n" +
-      "Сумма: " +
-      productPrice +
-      "\n" +
-      "Оплата: " +
-      (body.payment || "Не указано") +
-      "\n" +
-      "Связь: " +
-      (body.telegram || "Чат на сайте") +
-      "\n\n" +
-      (itemsText ? "Состав заказа:\n" + itemsText + "\n\n" : "") +
-      "Комментарий клиента:\n" +
-      (body.comment || "Нет");
-
-    await prisma.chatMessage.create({
-      data: {
-        userLogin,
-        sender: "user",
-        text: siteChatMessage,
-        readByAdmin: false,
-        readByUser: true,
-      },
-    });
-
     return NextResponse.json({
       ...order,
       paymentUrl,
