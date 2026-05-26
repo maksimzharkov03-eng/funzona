@@ -361,7 +361,7 @@ async function purchaseItem(orderId: number, item: OrderItem, index: number) {
     throw new Error("Нет остатка у поставщика для " + item.name);
   }
 
-  const customId = "funzona-" + orderId + "-" + index + "-" + crypto.randomUUID();
+  const customId = crypto.randomUUID();
 
   await nsCall("POST", "/api/v2/create_order", {
     service_id: service.service_id,
