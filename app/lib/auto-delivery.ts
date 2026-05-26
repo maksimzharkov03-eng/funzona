@@ -116,6 +116,12 @@ async function nsFetch<T>(
     "X-Signature": signNsRequest(method, path, "", body, timestamp, token || null),
   };
 
+  const proxyKey = (process.env.NS_GIFTS_PROXY_KEY || "").trim();
+
+  if (proxyKey) {
+    headers["X-Funzona-Proxy-Key"] = proxyKey;
+  }
+
   if (token) {
     headers["X-Token"] = token;
   }
