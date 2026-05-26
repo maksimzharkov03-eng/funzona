@@ -172,7 +172,7 @@ export default function GamePage() {
             <GameImage
               src={getGameCover(game)}
               title={game.title}
-              className="w-full aspect-[4/5] object-contain bg-black"
+              className="w-full aspect-[16/10] sm:aspect-[4/5] object-contain bg-black"
             />
 
             {game.discountPercent ? (
@@ -187,7 +187,7 @@ export default function GamePage() {
               {game.badge || "PLAYSTATION DIGITAL"}
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-black leading-[0.95]">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-black leading-[0.95]">
               {game.title}
             </h1>
 
@@ -218,7 +218,7 @@ export default function GamePage() {
               <div>
                 <p className="text-gray-500 font-bold">Цена FunZona</p>
                 <div className="flex items-end gap-4 mt-2">
-                  <span className="text-5xl font-black text-yellow-400">
+                  <span className="text-4xl sm:text-5xl font-black text-yellow-400">
                     {formatRub(game.rubPrice)}
                   </span>
                   {game.oldRubPrice ? (
