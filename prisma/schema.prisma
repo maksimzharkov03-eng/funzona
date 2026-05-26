@@ -19,9 +19,7 @@ model Order {
   id           Int      @id @default(autoincrement())
   telegram      String
   payment       String
-  paymentAmount String?
-  paymentFee    String?
-  comment       String?
+comment       String?
   status       String   @default("Ожидает оплаты")
   productName  String   @default("Товар не указан")
   productPrice String   @default("0 ₽")
