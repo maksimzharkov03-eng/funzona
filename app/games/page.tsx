@@ -10,6 +10,17 @@ import {
 import { storeGames } from "@/app/data/ps-store-games";
 
 type SortMode = "popular" | "discount" | "price-asc" | "price-desc";
+type GenreFilter =
+  | "Все"
+  | "Гонки"
+  | "Стрелялки"
+  | "Бои"
+  | "Спорт"
+  | "Приключения"
+  | "RPG"
+  | "Хоррор"
+  | "Симуляторы"
+  | "Семейные";
 
 const sortOptions: { value: SortMode; label: string }[] = [
   { value: "popular", label: "Популярные" },
@@ -19,6 +30,48 @@ const sortOptions: { value: SortMode; label: string }[] = [
 ];
 
 const gamesPageSize = 48;
+
+const genreOptions: GenreFilter[] = [
+  "Все",
+  "Гонки",
+  "Стрелялки",
+  "Бои",
+  "Спорт",
+  "Приключения",
+  "RPG",
+  "Хоррор",
+  "Симуляторы",
+  "Семейные",
+];
+
+const genreAliases: Record<Exclude<GenreFilter, "Все">, string[]> = {
+  Гонки: ["racing", "race", "driving", "гонки"],
+  Стрелялки: ["shooter", "fps", "shooting", "стрелял", "шутер"],
+  Бои: ["fighting", "fight", "combat", "ufc", "tekken", "mortal", "бои", "файтинг"],
+  Спорт: ["sports", "sport", "football", "basketball", "ufc", "спорт"],
+  Приключения: ["adventure", "action", "story", "приключ", "экшен"],
+  RPG: ["rpg", "role", "diablo", "gothic"],
+  Хоррор: ["horror", "survival", "ужас", "хоррор"],
+  Симуляторы: ["simulation", "simulator", "sim", "симулятор"],
+  Семейные: ["family", "kids", "lego", "minecraft", "семейн"],
+};
+
+function matchesGenre(game: MarketplaceGame, genre: GenreFilter) {
+  if (genre === "Все") return true;
+
+  const haystack = [
+    game.genre,
+    game.title,
+    game.edition,
+    game.description,
+    game.publisher,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return genreAliases[genre].some((alias) => haystack.includes(alias));
+}
 
 function GameImage({
   src,
@@ -91,6 +144,7 @@ export default function GamesPage() {
   const [search, setSearch] = useState("");
   const [platform, setPlatform] = useState("Все");
   const [region, setRegion] = useState("Все");
+  const [genre, setGenre] = useState<GenreFilter>("Все");
   const [sort, setSort] = useState<SortMode>("popular");
   const [sortOpen, setSortOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(gamesPageSize);
@@ -136,7 +190,7 @@ export default function GamesPage() {
 
   useEffect(() => {
     setVisibleCount(gamesPageSize);
-  }, [deferredSearch, platform, region, sort]);
+  }, [deferredSearch, platform, region, genre, sort]);
 
   const filteredGames = useMemo(() => {
     const normalizedSearch = deferredSearch.trim().toLowerCase();
@@ -164,8 +218,9 @@ export default function GamesPage() {
           (platform === "PS4" && game.platform.includes("PS4")) ||
           (platform === "PS5" && game.platform.includes("PS5"));
         const matchesRegion = region === "Все" || game.region === region;
+        const matchesGenreFilter = matchesGenre(game, genre);
 
-        return matchesSearch && matchesPlatform && matchesRegion;
+        return matchesSearch && matchesPlatform && matchesRegion && matchesGenreFilter;
       })
       .sort((a, b) => {
         if (sort === "price-asc") return a.rubPrice - b.rubPrice;
@@ -176,7 +231,7 @@ export default function GamesPage() {
 
         return Number(b.isFeatured || false) - Number(a.isFeatured || false);
       });
-  }, [games, platform, region, deferredSearch, sort]);
+  }, [games, platform, region, genre, deferredSearch, sort]);
 
   const visibleGames = useMemo(
     () => filteredGames.slice(0, visibleCount),
@@ -325,7 +380,7 @@ export default function GamesPage() {
 
             <div className="grid grid-cols-1 xl:grid-cols-[minmax(260px,1fr)_auto_auto_auto] gap-3 w-full xl:w-auto">
               <input
-                placeholder="Поиск игры, жанра или региона"
+                placeholder="Поиск игры или жанра"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="bg-white/5 border border-yellow-400/20 rounded-2xl px-5 py-4 outline-none focus:border-yellow-400"
@@ -359,6 +414,23 @@ export default function GamesPage() {
                     }`}
                   >
                     {item === "Все" ? "Регионы" : item}
+                  </button>
+                ))}
+              </div>
+
+              <div className="xl:col-span-4 flex gap-2 overflow-x-auto rounded-2xl border border-yellow-400/20 bg-white/5 p-1">
+                {genreOptions.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => setGenre(item)}
+                    className={`shrink-0 rounded-xl px-4 py-3 text-sm font-black transition whitespace-nowrap ${
+                      genre === item
+                        ? "bg-yellow-400 text-black"
+                        : "text-gray-300 hover:text-yellow-400"
+                    }`}
+                  >
+                    {item}
                   </button>
                 ))}
               </div>
