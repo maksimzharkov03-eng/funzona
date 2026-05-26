@@ -30,6 +30,8 @@ const sortOptions: { value: SortMode; label: string }[] = [
 ];
 
 const gamesPageSize = 40;
+const gamesCacheKey = "funzona-games-last-list";
+const selectedGameCacheKey = "funzona-selected-game";
 
 const genreOptions: GenreFilter[] = [
   "Все",
@@ -197,6 +199,12 @@ function getGameBadge(game: MarketplaceGame) {
   return "";
 }
 
+function saveGameForDetail(game: MarketplaceGame) {
+  try {
+    sessionStorage.setItem(selectedGameCacheKey, JSON.stringify(game));
+  } catch {}
+}
+
 function addGameToCart(game: MarketplaceGame) {
   const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
@@ -251,6 +259,12 @@ export default function GamesPage() {
     const timer = window.setTimeout(() => setToast(""), 2200);
     return () => window.clearTimeout(timer);
   }, [toast]);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(gamesCacheKey, JSON.stringify(games));
+    } catch {}
+  }, [games]);
 
   const featuredGame = useMemo(
     () => games.find((game) => game.isFeatured) || games[0],
@@ -357,6 +371,7 @@ export default function GamesPage() {
           {featuredGame ? (
             <Link
               href={`/games/${featuredGame.id}`}
+              onClick={() => saveGameForDetail(featuredGame)}
               className="group relative min-h-[340px] sm:min-h-[460px] rounded-3xl overflow-hidden border border-yellow-400/20 bg-white/5 shadow-2xl"
             >
               <GameImage
@@ -416,6 +431,7 @@ export default function GamesPage() {
               {discountedGames.map((game) => (
                 <Link
                   href={`/games/${game.id}`}
+                  onClick={() => saveGameForDetail(game)}
                   key={game.id}
                   className="grid grid-cols-[92px_1fr] sm:grid-cols-[110px_1fr] min-h-32 sm:min-h-36 bg-white/5 border border-yellow-400/20 rounded-3xl overflow-hidden hover:border-yellow-400 transition"
                 >
@@ -602,6 +618,7 @@ export default function GamesPage() {
                 >
                   <Link
                     href={`/games/${game.id}`}
+                    onClick={() => saveGameForDetail(game)}
                     className="relative block h-72 sm:h-80 overflow-hidden bg-[radial-gradient(circle_at_top,#ffd40022,transparent_45%),#050505]"
                   >
                     <GameImage
@@ -626,7 +643,7 @@ export default function GamesPage() {
                   </Link>
 
                   <div className="p-5">
-                    <Link href={`/games/${game.id}`}>
+                    <Link href={`/games/${game.id}`} onClick={() => saveGameForDetail(game)}>
                       <h2 className="text-xl sm:text-2xl font-black line-clamp-2 group-hover:text-yellow-400 transition sm:min-h-[64px]">
                         {game.title}
                       </h2>
@@ -663,6 +680,7 @@ export default function GamesPage() {
                       </button>
                       <Link
                         href={`/games/${game.id}`}
+                        onClick={() => saveGameForDetail(game)}
                         className="border border-yellow-400/30 px-4 py-4 rounded-2xl font-black hover:border-yellow-400 transition"
                         aria-label={`Открыть ${game.title}`}
                       >

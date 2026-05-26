@@ -10,6 +10,9 @@ import {
 } from "@/app/lib/games";
 import { storeGames } from "@/app/data/ps-store-games";
 
+const gamesCacheKey = "funzona-games-last-list";
+const selectedGameCacheKey = "funzona-selected-game";
+
 function GameImage({
   src,
   title,
@@ -47,6 +50,25 @@ function GameImage({
   );
 }
 
+function readJson<T>(key: string): T | null {
+  try {
+    const value = sessionStorage.getItem(key);
+    return value ? (JSON.parse(value) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+function findCachedGame(gameId: number) {
+  const selected = readJson<MarketplaceGame>(selectedGameCacheKey);
+
+  if (selected?.id === gameId) return selected;
+
+  const cachedList = readJson<MarketplaceGame[]>(gamesCacheKey);
+
+  return cachedList?.find((item) => item.id === gameId) || null;
+}
+
 function addGameToCart(game: MarketplaceGame) {
   const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
@@ -69,17 +91,31 @@ export default function GamePage() {
   const gameId = Number(params.id);
 
   useEffect(() => {
-    const fallback = storeGames.find((item) => item.id === gameId) || null;
+    const fallback =
+      findCachedGame(gameId) ||
+      storeGames.find((item) => item.id === gameId) ||
+      null;
+
     setGame(fallback);
 
     async function loadGame() {
       try {
-        const res = await fetch(`/api/games/${gameId}`, { cache: "no-store" });
-        const data = await res.json();
+        const controller = new AbortController();
+        const timer = window.setTimeout(() => controller.abort(), 4500);
+        const res = await fetch(`/api/games/${gameId}`, {
+          cache: "force-cache",
+          signal: controller.signal,
+        });
+        window.clearTimeout(timer);
 
-        if (res.ok) setGame(data);
+        if (!res.ok) return;
+
+        const data = await res.json();
+        setGame(data);
       } catch {
-        setGame(fallback);
+        if (!fallback) {
+          setGame(storeGames.find((item) => item.id === gameId) || null);
+        }
       }
     }
 
@@ -135,7 +171,7 @@ export default function GamePage() {
             <GameImage
               src={getGameCover(game)}
               title={game.title}
-              className="w-full aspect-[4/5] object-cover"
+              className="w-full aspect-[4/5] object-contain bg-black"
             />
 
             {game.discountPercent ? (

@@ -4,6 +4,10 @@ import { storeGames } from "@/app/data/ps-store-games";
 import { getPlayStationStoreCatalog } from "@/app/lib/ps-store-catalog";
 import { NextResponse } from "next/server";
 
+const detailCacheHeaders = {
+  "Cache-Control": "public, max-age=900, s-maxage=86400, stale-while-revalidate=604800",
+};
+
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -16,7 +20,7 @@ export async function GET(
       where: { id: gameId },
     });
 
-    if (game) return NextResponse.json(game);
+    if (game) return NextResponse.json(game, { headers: detailCacheHeaders });
   } catch (error) {
     console.log("GAME DETAIL ERROR:", error);
   }
@@ -26,12 +30,12 @@ export async function GET(
   const psStoreGame = [...storeCatalog, ...storeGames].find((game) => game.id === gameId);
 
   if (psStoreGame) {
-    return NextResponse.json(psStoreGame);
+    return NextResponse.json(psStoreGame, { headers: detailCacheHeaders });
   }
 
   if (!fallback) {
     return NextResponse.json({ error: "Игра не найдена" }, { status: 404 });
   }
 
-  return NextResponse.json(fallback);
+  return NextResponse.json(fallback, { headers: detailCacheHeaders });
 }
