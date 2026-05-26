@@ -46,7 +46,24 @@ const genreOptions: GenreFilter[] = [
 
 const genreAliases: Record<Exclude<GenreFilter, "Все">, string[]> = {
   Гонки: ["racing", "race", "driving", "гонки"],
-  Стрелялки: ["shooter", "fps", "shooting", "стрелял", "шутер"],
+  Стрелялки: [
+    "shooter",
+    "fps",
+    "shooting",
+    "gun",
+    "war",
+    "battle",
+    "battlefield",
+    "call of duty",
+    "cod",
+    "sniper",
+    "hell let loose",
+    "stalker",
+    "s.t.a.l.k.e.r",
+    "стрелял",
+    "шутер",
+    "войн",
+  ],
   Бои: ["fighting", "fight", "combat", "ufc", "tekken", "mortal", "бои", "файтинг"],
   Спорт: ["sports", "sport", "football", "basketball", "ufc", "спорт"],
   Приключения: ["adventure", "action", "story", "приключ", "экшен"],
@@ -55,6 +72,45 @@ const genreAliases: Record<Exclude<GenreFilter, "Все">, string[]> = {
   Симуляторы: ["simulation", "simulator", "sim", "симулятор"],
   Семейные: ["family", "kids", "lego", "minecraft", "семейн"],
 };
+
+function normalizeGameTitle(value: string) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[™®©]/g, "")
+    .replace(/\b(standard|ultimate|deluxe|premium|edition|издание|стандартное|ультимейт|делюкс)\b/g, "")
+    .replace(/[^a-zа-я0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function dedupeGames(games: MarketplaceGame[]) {
+  const map = new Map<string, MarketplaceGame>();
+
+  for (const game of games) {
+    const key = [normalizeGameTitle(game.title), game.platform, game.region].join("|");
+    const existing = map.get(key);
+
+    if (!existing) {
+      map.set(key, game);
+      continue;
+    }
+
+    const existingScore =
+      Number(existing.isFeatured || 0) * 100000 +
+      Number(existing.discountPercent || 0) * 100 +
+      Number(Boolean(existing.image));
+    const nextScore =
+      Number(game.isFeatured || 0) * 100000 +
+      Number(game.discountPercent || 0) * 100 +
+      Number(Boolean(game.image));
+
+    if (nextScore > existingScore) {
+      map.set(key, game);
+    }
+  }
+
+  return Array.from(map.values());
+}
 
 function matchesGenre(game: MarketplaceGame, genre: GenreFilter) {
   if (genre === "Все") return true;
@@ -147,6 +203,7 @@ export default function GamesPage() {
   const [genre, setGenre] = useState<GenreFilter>("Все");
   const [sort, setSort] = useState<SortMode>("popular");
   const [sortOpen, setSortOpen] = useState(false);
+  const [genreOpen, setGenreOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(gamesPageSize);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState("");
@@ -195,7 +252,7 @@ export default function GamesPage() {
   const filteredGames = useMemo(() => {
     const normalizedSearch = deferredSearch.trim().toLowerCase();
 
-    return games
+    return dedupeGames(games)
       .filter((game) => {
         const matchesSearch =
           !normalizedSearch ||
@@ -378,7 +435,7 @@ export default function GamesPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-[minmax(260px,1fr)_auto_auto_auto] gap-3 w-full xl:w-auto">
+            <div className="grid grid-cols-1 xl:grid-cols-[minmax(240px,1fr)_auto_auto_auto_auto] gap-3 w-full xl:w-auto">
               <input
                 placeholder="Поиск игры или жанра"
                 value={search}
@@ -418,21 +475,44 @@ export default function GamesPage() {
                 ))}
               </div>
 
-              <div className="xl:col-span-4 flex gap-2 overflow-x-auto rounded-2xl border border-yellow-400/20 bg-white/5 p-1">
-                {genreOptions.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => setGenre(item)}
-                    className={`shrink-0 rounded-xl px-4 py-3 text-sm font-black transition whitespace-nowrap ${
-                      genre === item
-                        ? "bg-yellow-400 text-black"
-                        : "text-gray-300 hover:text-yellow-400"
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setGenreOpen((open) => !open)}
+                  className="w-full xl:min-w-[170px] bg-white/5 border border-yellow-400/20 rounded-2xl px-5 py-4 outline-none hover:border-yellow-400 transition flex items-center justify-between gap-4 font-black"
+                  aria-expanded={genreOpen}
+                >
+                  <span>{genre}</span>
+                  <span
+                    className={`text-yellow-400 transition ${
+                      genreOpen ? "rotate-180" : ""
                     }`}
                   >
-                    {item}
-                  </button>
-                ))}
+                    ▼
+                  </span>
+                </button>
+
+                {genreOpen ? (
+                  <div className="absolute right-0 top-[calc(100%+10px)] z-40 w-full min-w-[210px] overflow-hidden rounded-2xl border border-yellow-400/30 bg-[#080808] shadow-2xl shadow-yellow-400/10 p-2">
+                    {genreOptions.map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => {
+                          setGenre(item);
+                          setGenreOpen(false);
+                        }}
+                        className={`w-full rounded-xl px-4 py-3 text-left font-black transition ${
+                          genre === item
+                            ? "bg-yellow-400 text-black"
+                            : "text-gray-200 hover:bg-white/10 hover:text-yellow-400"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
               </div>
 
               <div className="relative">
