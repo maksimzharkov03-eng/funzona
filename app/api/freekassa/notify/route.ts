@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { prisma } from "@/app/lib/prisma";
+import { attemptAutoDeliveryForOrder } from "@/app/lib/auto-delivery";
 import { NextResponse } from "next/server";
 
 function md5(value: string) {
@@ -215,7 +216,24 @@ async function handleNotify(req: Request) {
     });
   }
 
-  await sendOwnerTelegram(buildPaidOrderTelegramText(updated));
+  let finalOrder = updated;
+  let autoDeliveryNote = "";
+
+  try {
+    const autoDelivery = await attemptAutoDeliveryForOrder(updated);
+    finalOrder = autoDelivery.order as typeof updated;
+
+    if (autoDelivery.attempted) {
+      autoDeliveryNote = "\n\n🤖 Автовыдача: " + autoDelivery.message;
+    }
+  } catch (error: any) {
+    console.log("AUTO DELIVERY ERROR:", error);
+    autoDeliveryNote =
+      "\n\n⚠️ Автовыдача: не удалось выдать автоматически — " +
+      (error?.message || "ошибка поставщика");
+  }
+
+  await sendOwnerTelegram(buildPaidOrderTelegramText(finalOrder) + autoDeliveryNote);
 
   return new NextResponse("YES", {
     status: 200,
