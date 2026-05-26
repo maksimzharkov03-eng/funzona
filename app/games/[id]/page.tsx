@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   formatRub,
   getGameCover,
+  getGameGenre,
   type MarketplaceGame,
 } from "@/app/lib/games";
 import { storeGames } from "@/app/data/ps-store-games";
@@ -195,10 +196,11 @@ export default function GamePage() {
                 "Цифровая версия игры для аккаунта PlayStation с оформлением через FunZona."}
             </p>
 
-            <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 mt-8">
+            <div className="grid sm:grid-cols-2 xl:grid-cols-5 gap-3 mt-8">
               {[
                 ["Платформа", game.platform],
                 ["Регион", game.region],
+                ["Жанр", getGameGenre(game)],
                 ["Релиз", releaseDate],
                 ["Издание", game.edition || "Digital Edition"],
               ].map(([label, value]) => (

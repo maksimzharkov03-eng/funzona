@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import {
   calculateRubPrice,
+  getGameGenre,
   roundTryPrice,
   roundUahPrice,
   type MarketplaceGame,
@@ -408,7 +409,13 @@ function toMarketplaceGame(
     rubPrice: calculateRubPrice(product.price, undefined, region.currency),
     oldRubPrice,
     discountPercent,
-    genre: "PlayStation Store",
+    genre: getGameGenre({
+      title: product.name,
+      genre: product.classification || product.localizedClassification || "",
+      publisher: "PlayStation",
+      edition: product.classification || product.localizedClassification || "",
+      description: product.name,
+    }),
     publisher: "PlayStation",
     edition: product.classification || product.localizedClassification || "Digital Edition",
     badge: hasDiscount ? "Скидка" : region.country,
@@ -501,6 +508,6 @@ async function loadPlayStationStoreCatalog() {
 
 export const getPlayStationStoreCatalog = unstable_cache(
   loadPlayStationStoreCatalog,
-  ["ps-store-full-browse-catalog-v4"],
+  ["ps-store-full-browse-catalog-v5"],
   { revalidate: cacheSeconds }
 );

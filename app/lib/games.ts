@@ -112,6 +112,201 @@ export function formatRub(value: number) {
   return `${new Intl.NumberFormat("ru-RU").format(value)} ₽`;
 }
 
+const genreTranslations: Record<string, string> = {
+  action: "Экшен",
+  adventure: "Приключения",
+  racing: "Гонки",
+  race: "Гонки",
+  shooter: "Стрелялки",
+  shooting: "Стрелялки",
+  fps: "Стрелялки",
+  sports: "Спорт",
+  sport: "Спорт",
+  fighting: "Бои",
+  fight: "Бои",
+  combat: "Бои",
+  rpg: "RPG",
+  horror: "Хоррор",
+  survival: "Хоррор",
+  simulation: "Симуляторы",
+  simulator: "Симуляторы",
+  family: "Семейные",
+  story: "Сюжетные",
+};
+
+const genreRules: Array<{ label: string; words: string[] }> = [
+  {
+    label: "Гонки",
+    words: [
+      "forza",
+      "gran turismo",
+      "need for speed",
+      "racing",
+      "race",
+      "rally",
+      "wrc",
+      "f1 ",
+      "moto",
+      "motogp",
+      "carx",
+      "dirt",
+      "drift",
+    ],
+  },
+  {
+    label: "Стрелялки",
+    words: [
+      "call of duty",
+      "battlefield",
+      "hell let loose",
+      "sniper",
+      "doom",
+      "far cry",
+      "metro",
+      "borderlands",
+      "rainbow six",
+      "tom clancy",
+      "stalker",
+      "s.t.a.l.k.e.r",
+      "shooter",
+      "fps",
+      "shooting",
+      "gun",
+      "war",
+    ],
+  },
+  {
+    label: "Бои",
+    words: [
+      "ufc",
+      "mortal kombat",
+      "mk1",
+      "tekken",
+      "street fighter",
+      "dragon ball",
+      "wwe",
+      "boxing",
+      "fight",
+      "fighting",
+      "combat",
+    ],
+  },
+  {
+    label: "Спорт",
+    words: [
+      "ea sports fc",
+      "fifa",
+      "nba",
+      "nhl",
+      "mlb",
+      "madden",
+      "pga",
+      "tennis",
+      "football",
+      "basketball",
+      "sports",
+      "sport",
+    ],
+  },
+  {
+    label: "RPG",
+    words: [
+      "diablo",
+      "gothic",
+      "baldur",
+      "elden ring",
+      "final fantasy",
+      "dragon age",
+      "persona",
+      "monster hunter",
+      "rpg",
+      "role",
+    ],
+  },
+  {
+    label: "Хоррор",
+    words: [
+      "resident evil",
+      "silent hill",
+      "dying light",
+      "dead space",
+      "outlast",
+      "horror",
+      "survival",
+      "ужас",
+    ],
+  },
+  {
+    label: "Симуляторы",
+    words: [
+      "simulator",
+      "simulation",
+      "flight simulator",
+      "bus",
+      "truck",
+      "farming",
+      "train",
+      "sims",
+    ],
+  },
+  {
+    label: "Семейные",
+    words: ["lego", "minecraft", "sonic", "paw patrol", "family", "kids"],
+  },
+  {
+    label: "Приключения",
+    words: [
+      "assassin",
+      "spider-man",
+      "god of war",
+      "the last of us",
+      "astro bot",
+      "tomb raider",
+      "uncharted",
+      "star wars",
+      "adventure",
+      "story",
+      "action",
+    ],
+  },
+];
+
+export function getGameGenre(
+  game: Pick<
+    MarketplaceGame,
+    "title" | "genre" | "publisher" | "description" | "edition"
+  >
+) {
+  const rawGenre = String(game.genre || "").trim();
+  const normalizedGenre = rawGenre.toLowerCase();
+
+  if (
+    rawGenre &&
+    !["playstation store", "full_game", "игра", "digital edition"].includes(
+      normalizedGenre
+    )
+  ) {
+    return genreTranslations[normalizedGenre] || rawGenre;
+  }
+
+  const haystack = [
+    game.title,
+    game.genre,
+    game.publisher,
+    game.description,
+    game.edition,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return (
+    genreRules.find((rule) =>
+      rule.words.some((word) => haystack.includes(word))
+    )?.label || "Экшен"
+  );
+}
+
 export const tryPriceTable = [
   { tryAmount: 250, rubAmount: 525 },
   { tryAmount: 500, rubAmount: 1100 },

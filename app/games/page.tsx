@@ -5,6 +5,7 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import {
   formatRub,
   getGameCover,
+  getGameGenre,
   type MarketplaceGame,
 } from "@/app/lib/games";
 import { storeGames } from "@/app/data/ps-store-games";
@@ -135,6 +136,7 @@ function matchesGenre(game: MarketplaceGame, genre: GenreFilter) {
   if (genre === "Все") return true;
 
   const haystack = [
+    getGameGenre(game),
     game.genre,
     game.title,
     game.edition,
@@ -653,7 +655,7 @@ export default function GamesPage() {
                       PS Store: {game.originalPrice} {game.currency}
                     </p>
                     <p className="text-gray-400 mt-1 text-sm">
-                      {game.genre || "PlayStation"} •{" "}
+                      {getGameGenre(game)} •{" "}
                       {game.edition || "Digital Edition"}
                     </p>
 
