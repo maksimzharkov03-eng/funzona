@@ -28,7 +28,7 @@ export default function AdminNsBalanceStrip() {
 
     async function loadBalance() {
       try {
-        const res = await fetch("/api/admin/auto-delivery", { cache: "no-store" });
+        const res = await fetch("/api/admin/ns-balance", { cache: "no-store" });
         const data = await res.json();
 
         if (!active) return;

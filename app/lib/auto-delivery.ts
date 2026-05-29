@@ -589,17 +589,35 @@ export async function getNsGiftsBalance() {
   const paths = ["/api/v2/check_balance", "/api/v2/balance", "/api/v2/get_balance", "/api/v2/user/balance", "/api/v2/profile"];
   let lastMessage = "";
 
+  async function nsCallWithTimeout(endpoint: string, timeoutMs = 7000) {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    try {
+      return await Promise.race([
+        nsCall<Record<string, unknown>>("GET", endpoint),
+        new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error(`NS Gifts balance timeout after ${timeoutMs}ms on ${endpoint}`)), timeoutMs);
+        }),
+      ]);
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    }
+  }
+
   for (const endpoint of paths) {
-    for (let attempt = 1; attempt <= 3; attempt += 1) {
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
       try {
-        const data = await nsCall<Record<string, unknown>>("GET", endpoint);
+        const data = await nsCallWithTimeout(endpoint);
         const amount = extractNsBalanceAmount(data);
 
         return {
-          available: true,
+          available: amount !== null,
           endpoint,
           amount,
           raw: data,
+          message: amount === null ? "NS Gifts ответил, но сумма баланса не найдена в ответе." : undefined,
         };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -609,17 +627,12 @@ export async function getNsGiftsBalance() {
           break;
         }
 
-        if (message.includes("408") && attempt < 3) {
-          await delay(1200 * attempt);
+        if ((message.includes("408") || message.includes("timeout")) && attempt < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 1200));
           continue;
         }
 
-        return {
-          available: false,
-          endpoint,
-          amount: null,
-          message,
-        };
+        break;
       }
     }
   }
