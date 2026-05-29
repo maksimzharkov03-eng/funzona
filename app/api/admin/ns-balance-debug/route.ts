@@ -2,24 +2,15 @@ import { NextResponse } from "next/server";
 import { forbiddenJson, requireAdminUser } from "@/app/lib/server-auth";
 
 export const dynamic = "force-dynamic";
-
-const ENDPOINTS = [
-  "/api/v2/check_balance",
-  "/api/v2/balance",
-  "/api/v2/get_balance",
-  "/api/v2/user/balance",
-  "/api/v2/profile",
-  "/api/v2/user_info",
-  "/api/v2/account",
-];
+export const maxDuration = 10;
 
 function getBaseUrl() {
   return (process.env.NS_GIFTS_BASE_URL || "https://api.ns.gifts").replace(/\/$/, "");
 }
 
-function getProxyHeaders() {
+function getHeaders(token?: string) {
   const headers: Record<string, string> = {
-    "Accept": "application/json",
+    Accept: "application/json",
     "Content-Type": "application/json",
   };
 
@@ -27,30 +18,28 @@ function getProxyHeaders() {
     headers["x-proxy-key"] = process.env.NS_GIFTS_PROXY_KEY;
   }
 
-  return headers;
-}
-
-async function callRaw(method: "GET" | "POST", endpoint: string, token?: string) {
-  const headers = getProxyHeaders();
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const startedAt = Date.now();
+  return headers;
+}
+
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs = 3500) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const startedAt = Date.now();
 
   try {
-    const res = await fetch(`${getBaseUrl()}${endpoint}`, {
-      method,
-      headers,
-      body: method === "POST" ? JSON.stringify({}) : undefined,
-      cache: "no-store",
+    const res = await fetch(url, {
+      ...init,
       signal: controller.signal,
+      cache: "no-store",
     });
 
     const text = await res.text();
     let json: unknown = null;
+
     try {
       json = text ? JSON.parse(text) : null;
     } catch {
@@ -58,20 +47,16 @@ async function callRaw(method: "GET" | "POST", endpoint: string, token?: string)
     }
 
     return {
-      method,
-      endpoint,
-      status: res.status,
       ok: res.ok,
+      status: res.status,
       durationMs: Date.now() - startedAt,
       json,
-      text: text.slice(0, 500),
+      text: text.slice(0, 700),
     };
   } catch (error) {
     return {
-      method,
-      endpoint,
-      status: 0,
       ok: false,
+      status: 0,
       durationMs: Date.now() - startedAt,
       error: error instanceof Error ? error.message : String(error),
     };
@@ -88,62 +73,72 @@ async function getToken() {
   if (!login || !password || !userId) {
     return {
       token: "",
-      result: {
+      response: {
         ok: false,
         error: "Нет NS_GIFTS_LOGIN / NS_GIFTS_PASSWORD / NS_GIFTS_USER_ID",
       },
     };
   }
 
-  const headers = getProxyHeaders();
-  const res = await fetch(`${getBaseUrl()}/api/v2/get_token`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      login,
-      password,
-      user_id: userId,
-    }),
-    cache: "no-store",
-  });
+  const response = await fetchWithTimeout(
+    `${getBaseUrl()}/api/v2/get_token`,
+    {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        login,
+        password,
+        user_id: userId,
+      }),
+    },
+    3500
+  );
 
-  const text = await res.text();
-  let data: any = null;
-  try {
-    data = text ? JSON.parse(text) : null;
-  } catch {
-    data = null;
-  }
+  const data = response.json as { token?: unknown } | null;
 
   return {
     token: typeof data?.token === "string" ? data.token : "",
-    result: {
-      ok: res.ok,
-      status: res.status,
-      data,
-      text: text.slice(0, 500),
-    },
+    response,
   };
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   const admin = await requireAdminUser();
   if (!admin) {
     return forbiddenJson();
   }
 
-  const tokenData = await getToken();
-  const results = [];
+  const url = new URL(req.url);
+  const endpoint = url.searchParams.get("endpoint") || "/api/v2/check_balance";
+  const method = (url.searchParams.get("method") || "GET").toUpperCase() === "POST" ? "POST" : "GET";
+  const startedAt = Date.now();
 
-  for (const endpoint of ENDPOINTS) {
-    results.push(await callRaw("GET", endpoint, tokenData.token));
-    results.push(await callRaw("POST", endpoint, tokenData.token));
-  }
+  const tokenData = await getToken();
+  const checkBalance = await fetchWithTimeout(
+    `${getBaseUrl()}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`,
+    {
+      method,
+      headers: getHeaders(tokenData.token),
+      body: method === "POST" ? JSON.stringify({}) : undefined,
+    },
+    3500
+  );
 
   return NextResponse.json({
     baseUrl: getBaseUrl(),
     hasProxyKey: Boolean(process.env.NS_GIFTS_PROXY_KEY),
-    token: tokenData.result,
-    results,
+    endpoint,
+    method,
+    totalDurationMs: Date.now() - startedAt,
+    token: {
+      received: Boolean(tokenData.token),
+      response: tokenData.response,
+    },
+    checkBalance,
+    tryNext: [
+      "/api/admin/ns-balance-debug?method=POST",
+      "/api/admin/ns-balance-debug?endpoint=/api/v2/profile&method=GET",
+      "/api/admin/ns-balance-debug?endpoint=/api/v2/user_info&method=GET",
+    ],
   });
 }
