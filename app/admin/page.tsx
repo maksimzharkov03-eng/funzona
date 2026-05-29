@@ -330,9 +330,14 @@ export default function AdminPage() {
           ))}
         </div>
 
+        <AdminNsBalanceStrip />
+
+
+
         {activeTab === "orders" ? (
-                  <AdminNsBalanceStrip />
-<section className="rounded-3xl border border-yellow-400/20 bg-white/5 p-4 sm:p-6">
+
+
+          <section className="rounded-3xl border border-yellow-400/20 bg-white/5 p-4 sm:p-6">
             <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-sm font-black uppercase text-yellow-400">Заказы</p>
