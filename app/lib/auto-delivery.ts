@@ -527,6 +527,95 @@ function buildDeliveryData(
     .join("\n\n");
 }
 
+
+function extractNsBalanceAmount(data: unknown): number | null {
+  const directKeys = new Set([
+    "balance",
+    "usd_balance",
+    "available_balance",
+    "available",
+    "amount",
+    "sum",
+    "wallet",
+  ]);
+
+  function toNumber(value: unknown) {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === "string") {
+      const normalized = value.replace(",", ".").replace(/[^0-9.-]/g, "");
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+  }
+
+  function walk(value: unknown, keyName = ""): number | null {
+    const asNumber = directKeys.has(keyName.toLowerCase()) ? toNumber(value) : null;
+    if (asNumber !== null) {
+      return asNumber;
+    }
+
+    if (!value || typeof value !== "object") {
+      return null;
+    }
+
+    for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+      const lowerKey = key.toLowerCase();
+      const nestedNumber = lowerKey.includes("balance") || lowerKey.includes("wallet") ? toNumber(nested) : null;
+      if (nestedNumber !== null) {
+        return nestedNumber;
+      }
+
+      const found = walk(nested, key);
+      if (found !== null) {
+        return found;
+      }
+    }
+
+    return null;
+  }
+
+  return walk(data);
+}
+
+export async function getNsGiftsBalance() {
+  const paths = ["/api/v2/balance", "/api/v2/get_balance", "/api/v2/user/balance", "/api/v2/profile"];
+
+  for (const endpoint of paths) {
+    try {
+      const data = await nsCall<Record<string, unknown>>("GET", endpoint);
+      const amount = extractNsBalanceAmount(data);
+
+      return {
+        available: true,
+        endpoint,
+        amount,
+        raw: data,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!message.includes("404")) {
+        return {
+          available: false,
+          endpoint,
+          amount: null,
+          message,
+        };
+      }
+    }
+  }
+
+  return {
+    available: false,
+    amount: null,
+    message: "NS Gifts не вернул баланс через известные endpoints.",
+  };
+}
+
 export async function attemptAutoDeliveryForOrder(
   order: AutoDeliveryOrder
 ): Promise<AutoDeliveryResult> {
