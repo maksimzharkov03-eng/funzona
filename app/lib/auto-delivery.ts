@@ -582,23 +582,39 @@ function extractNsBalanceAmount(data: unknown): number | null {
   return walk(data);
 }
 
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function getNsGiftsBalance() {
   const paths = ["/api/v2/check_balance", "/api/v2/balance", "/api/v2/get_balance", "/api/v2/user/balance", "/api/v2/profile"];
+  let lastMessage = "";
 
   for (const endpoint of paths) {
-    try {
-      const data = await nsCall<Record<string, unknown>>("GET", endpoint);
-      const amount = extractNsBalanceAmount(data);
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      try {
+        const data = await nsCall<Record<string, unknown>>("GET", endpoint);
+        const amount = extractNsBalanceAmount(data);
 
-      return {
-        available: true,
-        endpoint,
-        amount,
-        raw: data,
-      };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      if (!message.includes("404")) {
+        return {
+          available: true,
+          endpoint,
+          amount,
+          raw: data,
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        lastMessage = message;
+
+        if (message.includes("404")) {
+          break;
+        }
+
+        if (message.includes("408") && attempt < 3) {
+          await delay(1200 * attempt);
+          continue;
+        }
+
         return {
           available: false,
           endpoint,
@@ -612,7 +628,7 @@ export async function getNsGiftsBalance() {
   return {
     available: false,
     amount: null,
-    message: "NS Gifts не вернул баланс через известные endpoints.",
+    message: lastMessage || "NS Gifts не вернул баланс через известные endpoints.",
   };
 }
 

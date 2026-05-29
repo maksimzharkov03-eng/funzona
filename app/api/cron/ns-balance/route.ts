@@ -14,6 +14,7 @@ type NsBalanceInfo = {
 
 const LOW_BALANCE_LIMIT_USD = Number(process.env.NS_GIFTS_LOW_BALANCE_LIMIT_USD || 50);
 const ALERT_INTERVAL_MS = Number(process.env.NS_GIFTS_LOW_BALANCE_ALERT_HOURS || 6) * 60 * 60 * 1000;
+const ERROR_ALERT_AFTER_CONSECUTIVE_FAILURES = Number(process.env.NS_GIFTS_BALANCE_ERROR_ALERT_AFTER || 3);
 
 function isAuthorized(req: Request) {
   const secret = process.env.NS_BALANCE_CRON_SECRET || process.env.CRON_SECRET;
@@ -95,17 +96,44 @@ async function handleLowBalance(balance: NsBalanceInfo) {
 }
 
 async function handleBalanceCheckError(message: string) {
-  if (await recentlyLogged("balance-check-error")) {
-    return { alertSent: false, reason: "recent-error-exists" };
+  await logBalance("balance-check-error", message);
+
+  const latestLogs = await prisma.autoDeliveryLog.findMany({
+    where: {
+      provider: "NS Gifts",
+      status: {
+        in: ["balance-check-error", "balance-warning"],
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    take: ERROR_ALERT_AFTER_CONSECUTIVE_FAILURES,
+  });
+
+  const consecutiveErrors =
+    latestLogs.length >= ERROR_ALERT_AFTER_CONSECUTIVE_FAILURES &&
+    latestLogs.every((log) => log.status === "balance-check-error");
+
+  if (!consecutiveErrors) {
+    return {
+      alertSent: false,
+      reason: `waiting-for-${ERROR_ALERT_AFTER_CONSECUTIVE_FAILURES}-consecutive-errors`,
+    };
   }
 
-  const text = `⚠️ <b>FunZona: не удалось проверить баланс NS Gifts</b>\n\nОшибка: <code>${message
+  if (await recentlyLogged("balance-check-error-alert")) {
+    return { alertSent: false, reason: "recent-error-alert-exists" };
+  }
+
+  const text = `⚠️ <b>FunZona: NS Gifts не отвечает по балансу</b>\n\nОшибка повторилась ${ERROR_ALERT_AFTER_CONSECUTIVE_FAILURES} раза подряд.\nПоследняя ошибка: <code>${message
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")}</code>\n\nПроверь NS Gifts API или VPS proxy.`;
+    .replaceAll(">", "&gt;")}</code>\n\nАвтовыдача кодов может работать, но баланс сейчас проверить не удалось.`;
 
   const sent = await sendTelegramMessage(text);
-  await logBalance("balance-check-error", sent ? `Ошибка проверки баланса отправлена в Telegram: ${message}` : message);
+  await logBalance(
+    "balance-check-error-alert",
+    sent ? `Telegram-уведомление отправлено после серии ошибок: ${message}` : `Серия ошибок, Telegram не ответил: ${message}`
+  );
 
   return { alertSent: sent, reason: sent ? "sent" : "telegram-failed" };
 }
