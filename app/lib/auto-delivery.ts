@@ -583,7 +583,7 @@ function extractNsBalanceAmount(data: unknown): number | null {
 }
 
 export async function getNsGiftsBalance() {
-  const paths = ["/api/v2/balance", "/api/v2/get_balance", "/api/v2/user/balance", "/api/v2/profile"];
+  const paths = ["/api/v2/check_balance", "/api/v2/balance", "/api/v2/get_balance", "/api/v2/user/balance", "/api/v2/profile"];
 
   for (const endpoint of paths) {
     try {

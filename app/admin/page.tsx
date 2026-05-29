@@ -5,6 +5,7 @@ import AdminChat from "./AdminChat";
 import AdminGames from "./AdminGames";
 import AdminProducts from "./AdminProducts";
 import AdminNsBalanceMini from "./AdminNsBalanceMini";
+import AdminNsBalanceStrip from "./AdminNsBalanceStrip";
 
 type AdminTab = "orders" | "delivery" | "chat" | "products" | "games";
 
@@ -330,11 +331,11 @@ export default function AdminPage() {
         </div>
 
         {activeTab === "orders" ? (
-          <section className="rounded-3xl border border-yellow-400/20 bg-white/5 p-4 sm:p-6">
+                  <AdminNsBalanceStrip />
+<section className="rounded-3xl border border-yellow-400/20 bg-white/5 p-4 sm:p-6">
             <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-sm font-black uppercase text-yellow-400">Заказы</p>
-          <AdminNsBalanceMini />
                 <h2 className="text-3xl font-black">Управление заказами</h2>
               </div>
 
