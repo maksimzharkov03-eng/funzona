@@ -74,3 +74,17 @@ model ChatMessage {
 
   @@index([userLogin, createdAt])
 }
+
+
+model AutoDeliveryLog {
+  id        Int      @id @default(autoincrement())
+  orderId   Int?
+  provider  String   @default("NS Gifts")
+  status    String
+  message   String
+  costUsd   Float?
+  createdAt DateTime @default(now())
+
+  @@index([orderId, createdAt])
+  @@index([status, createdAt])
+}
