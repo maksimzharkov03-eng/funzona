@@ -1,0 +1,152 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/app/lib/prisma";
+import { getNsGiftsBalance } from "@/app/lib/auto-delivery";
+
+export const dynamic = "force-dynamic";
+
+type NsBalanceInfo = {
+  available: boolean;
+  amount: number | null;
+  endpoint?: string;
+  message?: string;
+  raw?: unknown;
+};
+
+const LOW_BALANCE_LIMIT_USD = Number(process.env.NS_GIFTS_LOW_BALANCE_LIMIT_USD || 50);
+const ALERT_INTERVAL_MS = Number(process.env.NS_GIFTS_LOW_BALANCE_ALERT_HOURS || 6) * 60 * 60 * 1000;
+
+function isAuthorized(req: Request) {
+  const secret = process.env.NS_BALANCE_CRON_SECRET || process.env.CRON_SECRET;
+  const url = new URL(req.url);
+  const key = req.headers.get("x-cron-secret") || url.searchParams.get("key");
+
+  return Boolean(secret && key && key === secret);
+}
+
+async function sendTelegramMessage(text: string) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+
+  if (!token || !chatId) {
+    return false;
+  }
+
+  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+    }),
+  });
+
+  return res.ok;
+}
+
+async function recentlyLogged(status: string) {
+  const lastLog = await prisma.autoDeliveryLog.findFirst({
+    where: {
+      provider: "NS Gifts",
+      status,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return Boolean(lastLog && Date.now() - lastLog.createdAt.getTime() < ALERT_INTERVAL_MS);
+}
+
+async function logBalance(status: string, message: string) {
+  await prisma.autoDeliveryLog.create({
+    data: {
+      orderId: null,
+      provider: "NS Gifts",
+      status,
+      message: message.slice(0, 1000),
+      costUsd: null,
+    },
+  });
+}
+
+async function handleLowBalance(balance: NsBalanceInfo) {
+  if (!balance.available || typeof balance.amount !== "number" || balance.amount > LOW_BALANCE_LIMIT_USD) {
+    return { alertSent: false, reason: "balance-ok" };
+  }
+
+  if (await recentlyLogged("balance-warning")) {
+    return { alertSent: false, reason: "recent-warning-exists" };
+  }
+
+  const text = `⚠️ <b>FunZona: низкий баланс NS Gifts</b>\n\nТекущий баланс: <b>$${balance.amount.toFixed(
+    2
+  )}</b>\nПорог: <b>$${LOW_BALANCE_LIMIT_USD.toFixed(2)}</b>\n\nНужно пополнить NS Gifts, чтобы автовыдача Apple-кодов не остановилась.`;
+
+  const sent = await sendTelegramMessage(text);
+
+  await logBalance(
+    "balance-warning",
+    sent
+      ? `Telegram-уведомление отправлено. Баланс NS Gifts: $${balance.amount.toFixed(2)}.`
+      : `Баланс NS Gifts низкий ($${balance.amount.toFixed(2)}), но Telegram не настроен или не ответил.`
+  );
+
+  return { alertSent: sent, reason: sent ? "sent" : "telegram-failed" };
+}
+
+async function handleBalanceCheckError(message: string) {
+  if (await recentlyLogged("balance-check-error")) {
+    return { alertSent: false, reason: "recent-error-exists" };
+  }
+
+  const text = `⚠️ <b>FunZona: не удалось проверить баланс NS Gifts</b>\n\nОшибка: <code>${message
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")}</code>\n\nПроверь NS Gifts API или VPS proxy.`;
+
+  const sent = await sendTelegramMessage(text);
+  await logBalance("balance-check-error", sent ? `Ошибка проверки баланса отправлена в Telegram: ${message}` : message);
+
+  return { alertSent: sent, reason: sent ? "sent" : "telegram-failed" };
+}
+
+export async function GET(req: Request) {
+  if (!isAuthorized(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const balance = (await getNsGiftsBalance()) as NsBalanceInfo;
+
+    if (!balance.available) {
+      const result = await handleBalanceCheckError(balance.message || "NS Gifts balance unavailable");
+
+      return NextResponse.json({
+        ok: false,
+        balance,
+        alert: result,
+      });
+    }
+
+    const result = await handleLowBalance(balance);
+
+    return NextResponse.json({
+      ok: true,
+      balance,
+      lowBalanceLimitUsd: LOW_BALANCE_LIMIT_USD,
+      alert: result,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    const result = await handleBalanceCheckError(message);
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error: message,
+        alert: result,
+      },
+      { status: 500 }
+    );
+  }
+}
