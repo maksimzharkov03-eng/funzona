@@ -21,6 +21,7 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("orders");
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [deliveryDrafts, setDeliveryDrafts] = useState<Record<number, string>>({});
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
 
   const statuses = [
     "Ожидает оплаты",
@@ -70,6 +71,18 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
+    async function checkAdminAccess() {
+      const res = await fetch("/api/admin/me", { cache: "no-store" });
+
+      if (!res.ok) {
+        window.location.href = "/login";
+        return;
+      }
+
+      setCheckingAdmin(false);
+    }
+
+    checkAdminAccess();
     loadOrders();
     loadUnreadMessages();
 
@@ -204,6 +217,16 @@ export default function AdminPage() {
       : orders.filter((order) => order.status === filter);
 
   const unreadLabel = unreadMessages > 99 ? "99+" : String(unreadMessages);
+
+  if (checkingAdmin) {
+    return (
+      <main className="min-h-screen bg-black px-6 py-10 text-white">
+        <div className="mx-auto max-w-3xl rounded-3xl border border-yellow-400/20 bg-white/5 p-8 font-black text-yellow-400">
+          Проверяем доступ...
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-black px-4 py-8 text-white sm:px-6 sm:py-10">

@@ -1,3 +1,4 @@
+import { getServerUser, forbiddenJson, isAdmin, unauthorizedJson } from "@/app/lib/server-auth";
 import { prisma } from "@/app/lib/prisma";
 import { verifyToken } from "@/app/lib/auth";
 import { cookies } from "next/headers";
@@ -42,6 +43,12 @@ function hideClientOrderNumber(message: any) {
 }
 
 export async function GET(req: Request) {
+  const currentUser = await getServerUser();
+
+  if (!currentUser) {
+    return unauthorizedJson();
+  }
+
   const payload = await getPayload();
 
   if (!payload?.login) {
@@ -49,6 +56,17 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url);
+  const requestedChatLogin =
+    searchParams.get("login") || searchParams.get("userLogin");
+  const chatMode = searchParams.get("mode");
+
+  if (chatMode === "conversations" && !isAdmin(currentUser)) {
+    return forbiddenJson();
+  }
+
+  if (requestedChatLogin && !isAdmin(currentUser) && requestedChatLogin !== currentUser.login) {
+    return forbiddenJson();
+  }
   const mode = searchParams.get("mode");
   const userLogin = searchParams.get("userLogin");
   const isAdmin = payload.role === "admin" || payload.login === "admin";
@@ -125,6 +143,15 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
+
+  if (body.sender === "admin" && !isAdmin(currentUser)) {
+    return forbiddenJson();
+  }
+
+  if (body.sender !== "admin") {
+    body.sender = "user";
+    body.userLogin = currentUser.login;
+  }
   const text = cleanText(body.text);
   const isAdmin = payload.role === "admin" || payload.login === "admin";
   const userLogin = isAdmin ? cleanText(body.userLogin) : payload.login;

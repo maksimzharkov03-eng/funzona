@@ -1,3 +1,4 @@
+import { getServerUser, forbiddenJson, isAdmin, unauthorizedJson } from "@/app/lib/server-auth";
 import { prisma } from "@/app/lib/prisma";
 import { verifyToken } from "@/app/lib/auth";
 import { cookies } from "next/headers";
@@ -9,6 +10,20 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
 
     const login = searchParams.get("login");
+
+    const currentUser = await getServerUser();
+
+    if (!currentUser) {
+      return unauthorizedJson();
+    }
+
+    if (!login && !isAdmin(currentUser)) {
+      return forbiddenJson();
+    }
+
+    if (login && !isAdmin(currentUser) && login !== currentUser.login) {
+      return forbiddenJson();
+    }
 
     const orders = await prisma.order.findMany({
       where: login
@@ -147,27 +162,13 @@ function createFreeKassaPaymentUrl(orderId: number, amountValue: number, userLog
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    let userLogin = body.userLogin;
+    const currentUser = await getServerUser();
 
-    if (!userLogin) {
-      const token = (await cookies()).get("token")?.value;
-
-      if (token) {
-        try {
-          const payload: any = await verifyToken(token);
-          userLogin = payload.login;
-        } catch {
-          userLogin = "";
-        }
-      }
+    if (!currentUser) {
+      return unauthorizedJson("Пользователь не авторизован");
     }
 
-    if (!userLogin) {
-      return NextResponse.json(
-        { error: "Пользователь не авторизован" },
-        { status: 401 }
-      );
-    }
+    const userLogin = currentUser.login;
 
     const items = normalizeOrderItems(body.items);
     const itemsText = buildItemsText(items);

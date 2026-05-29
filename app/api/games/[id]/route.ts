@@ -1,3 +1,4 @@
+import { forbiddenJson, requireAdminUser } from "@/app/lib/server-auth";
 import { prisma } from "@/app/lib/prisma";
 import { demoGames } from "@/app/lib/games";
 import { storeGames } from "@/app/data/ps-store-games";

@@ -1,3 +1,4 @@
+import { forbiddenJson, requireAdminUser } from "@/app/lib/server-auth";
 import { prisma } from "@/app/lib/prisma";
 import { calculateRubPrice, demoGames, roundTryPrice, roundUahPrice } from "@/app/lib/games";
 import { storeGames } from "@/app/data/ps-store-games";
@@ -88,6 +89,12 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const admin = await requireAdminUser();
+
+  if (!admin) {
+    return forbiddenJson();
+  }
+
   try {
     const body = await req.json();
     const originalPrice = Number(body.originalPrice || 0);
