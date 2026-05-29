@@ -4,14 +4,14 @@ import { NextResponse } from "next/server";
 
 export async function PATCH(
   req: Request,
-  {
+  { params }: { params: Promise<{ id: string }> }
+) {
   const admin = await requireAdminUser();
 
   if (!admin) {
     return forbiddenJson();
   }
- params }: { params: Promise<{ id: string }> }
-) {
+
   try {
     const { id } = await params;
     const body = await req.json();
