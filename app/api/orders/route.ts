@@ -1,4 +1,4 @@
-import { getServerUser, forbiddenJson, isAdmin, unauthorizedJson } from "@/app/lib/server-auth";
+import { getServerUser, forbiddenJson, isAdmin as isAdminUser, unauthorizedJson } from "@/app/lib/server-auth";
 import { prisma } from "@/app/lib/prisma";
 import { verifyToken } from "@/app/lib/auth";
 import { cookies } from "next/headers";
@@ -17,11 +17,11 @@ export async function GET(req: Request) {
       return unauthorizedJson();
     }
 
-    if (!login && !isAdmin(currentUser)) {
+    if (!login && !isAdminUser(currentUser)) {
       return forbiddenJson();
     }
 
-    if (login && !isAdmin(currentUser) && login !== currentUser.login) {
+    if (login && !isAdminUser(currentUser) && login !== currentUser.login) {
       return forbiddenJson();
     }
 

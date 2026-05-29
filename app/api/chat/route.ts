@@ -1,4 +1,4 @@
-import { getServerUser, forbiddenJson, isAdmin, unauthorizedJson } from "@/app/lib/server-auth";
+import { getServerUser, forbiddenJson, isAdmin as isAdminUser, unauthorizedJson } from "@/app/lib/server-auth";
 import { prisma } from "@/app/lib/prisma";
 import { verifyToken } from "@/app/lib/auth";
 import { cookies } from "next/headers";
@@ -60,11 +60,11 @@ export async function GET(req: Request) {
     searchParams.get("login") || searchParams.get("userLogin");
   const chatMode = searchParams.get("mode");
 
-  if (chatMode === "conversations" && !isAdmin(currentUser)) {
+  if (chatMode === "conversations" && !isAdminUser(currentUser)) {
     return forbiddenJson();
   }
 
-  if (requestedChatLogin && !isAdmin(currentUser) && requestedChatLogin !== currentUser.login) {
+  if (requestedChatLogin && !isAdminUser(currentUser) && requestedChatLogin !== currentUser.login) {
     return forbiddenJson();
   }
   const mode = searchParams.get("mode");
@@ -136,6 +136,12 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const currentUser = await getServerUser();
+
+  if (!currentUser) {
+    return unauthorizedJson();
+  }
+
   const payload = await getPayload();
 
   if (!payload?.login) {
@@ -144,7 +150,7 @@ export async function POST(req: Request) {
 
   const body = await req.json();
 
-  if (body.sender === "admin" && !isAdmin(currentUser)) {
+  if (body.sender === "admin" && !isAdminUser(currentUser)) {
     return forbiddenJson();
   }
 
