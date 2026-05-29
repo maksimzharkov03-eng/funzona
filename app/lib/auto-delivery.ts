@@ -527,7 +527,6 @@ function buildDeliveryData(
     .join("\n\n");
 }
 
-
 function extractNsBalanceAmount(data: unknown): number | null {
   const directKeys = new Set([
     "balance",
