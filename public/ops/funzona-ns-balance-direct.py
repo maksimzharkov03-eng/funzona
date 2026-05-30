@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import base64
+import hashlib
+import hmac
 import json
 import time
 import urllib.error
@@ -26,14 +29,20 @@ def log(message):
         file.write(time.strftime("%Y-%m-%d %H:%M:%S") + " " + message + "\n")
 
 
-def request_json(url, method="GET", body=None, headers=None, timeout=20):
+def json_bytes(value):
+    if value is None:
+        return b""
+    return json.dumps(value, separators=(",", ":")).encode("utf-8")
+
+
+def request_json(url, method="GET", body=None, headers=None, timeout=30):
     headers = dict(headers or {})
     headers["Accept"] = "application/json"
-    payload = None
+    payload = json_bytes(body)
     if body is not None:
-        payload = json.dumps(body).encode("utf-8")
         headers["Content-Type"] = "application/json"
-    req = urllib.request.Request(url, data=payload, headers=headers, method=method)
+
+    req = urllib.request.Request(url, data=payload if body is not None else None, headers=headers, method=method)
     try:
         with urllib.request.urlopen(req, timeout=timeout) as response:
             text = response.read().decode("utf-8", "replace")
@@ -46,11 +55,35 @@ def request_json(url, method="GET", body=None, headers=None, timeout=20):
             return error.code, {"raw": text}
 
 
+def signature(api_secret, method, path, body, timestamp, token=None):
+    body_hash = hashlib.sha256(body or b"").hexdigest()
+    parts = [method.upper(), path, "", timestamp]
+    if token is not None:
+        parts.append(token)
+    parts.append(body_hash)
+    string_to_sign = "\n".join(parts).encode("utf-8")
+    digest = hmac.new(base64.b64decode(api_secret), string_to_sign, hashlib.sha256).digest()
+    return base64.b64encode(digest).decode("utf-8")
+
+
+def signed_headers(env, method, path, body, token=None):
+    timestamp = str(int(time.time()))
+    headers = {
+        "X-User-Id": str(env["NS_GIFTS_USER_ID"]),
+        "X-Timestamp": timestamp,
+        "X-Signature": signature(env["NS_GIFTS_API_SECRET"], method, path, body, timestamp, token),
+    }
+    if token is not None:
+        headers["X-Token"] = token
+    if env.get("NS_GIFTS_PROXY_KEY"):
+        headers["x-funzona-proxy-key"] = env["NS_GIFTS_PROXY_KEY"]
+    return headers
+
+
 def find_balance(value):
     if isinstance(value, dict):
         for key, nested in value.items():
-            lower = key.lower()
-            if "balance" in lower or "wallet" in lower:
+            if "balance" in key.lower() or "wallet" in key.lower():
                 try:
                     return float(str(nested).replace(",", "."))
                 except Exception:
@@ -92,53 +125,58 @@ def telegram(env, text):
     log("telegram status=" + str(status))
 
 
-def main():
-    env = load_env()
-    base = env.get("NS_GIFTS_BASE_URL", "http://127.0.0.1:8787").rstrip("/")
-    headers = {}
-    if env.get("NS_GIFTS_PROXY_KEY"):
-        headers["x-proxy-key"] = env["NS_GIFTS_PROXY_KEY"]
-
+def login(env, base):
+    path = "/api/v2/get_token"
+    body = {"login": env["NS_GIFTS_LOGIN"], "password": env["NS_GIFTS_PASSWORD"]}
+    payload = json_bytes(body)
     status, token_data = request_json(
-        base + "/api/v2/get_token",
+        base + path,
         method="POST",
-        body={
-            "user_id": env["NS_GIFTS_USER_ID"],
-            "login": env["NS_GIFTS_LOGIN"],
-            "password": env["NS_GIFTS_PASSWORD"],
-        },
-        headers=headers,
+        body=body,
+        headers=signed_headers(env, "POST", path, payload),
     )
     log("get_token status=" + str(status))
     token = token_data.get("token") if isinstance(token_data, dict) else None
     if not token:
         raise RuntimeError("get_token failed: " + json.dumps(token_data, ensure_ascii=False)[:500])
+    return token
 
-    headers["Authorization"] = "Bearer " + token
-    results = []
-    for method in ("GET", "POST"):
-        status, data = request_json(
-            base + "/api/v2/check_balance",
-            method=method,
-            body={} if method == "POST" else None,
-            headers=headers,
-        )
-        balance = find_balance(data)
-        results.append({"method": method, "status": status, "data": data})
-        log("check_balance method=" + method + " status=" + str(status) + " balance=" + str(balance))
-        if balance is not None:
-            state = load_state()
-            state["last_balance"] = balance
-            state["last_balance_at"] = int(time.time())
-            state["last_error_count"] = 0
-            limit = float(env.get("NS_GIFTS_LOW_BALANCE", "50"))
-            last_alert = int(state.get("last_low_alert", 0) or 0)
-            if balance <= limit and time.time() - last_alert > 21600:
-                telegram(env, "⚠️ <b>FunZona: низкий баланс NS Gifts</b>\n\nТекущий баланс: <b>$%.2f</b>\nПорог: <b>$%.2f</b>\n\nНужно пополнить NS Gifts." % (balance, limit))
-                state["last_low_alert"] = int(time.time())
-            save_state(state)
-            return
-    raise RuntimeError("balance not found: " + json.dumps(results, ensure_ascii=False)[:800])
+
+def main():
+    env = load_env()
+    required = [
+        "NS_GIFTS_USER_ID",
+        "NS_GIFTS_LOGIN",
+        "NS_GIFTS_PASSWORD",
+        "NS_GIFTS_API_SECRET",
+    ]
+    missing = [key for key in required if not env.get(key)]
+    if missing:
+        raise RuntimeError("missing settings: " + ", ".join(missing))
+
+    base = env.get("NS_GIFTS_BASE_URL", "http://127.0.0.1:8787").rstrip("/")
+    token = login(env, base)
+    path = "/api/v2/check_balance"
+    status, data = request_json(
+        base + path,
+        method="GET",
+        headers=signed_headers(env, "GET", path, b"", token),
+    )
+    balance = find_balance(data)
+    log("check_balance method=GET status=" + str(status) + " balance=" + str(balance))
+    if balance is None:
+        raise RuntimeError("balance not found: " + json.dumps(data, ensure_ascii=False)[:800])
+
+    state = load_state()
+    state["last_balance"] = balance
+    state["last_balance_at"] = int(time.time())
+    state["last_error_count"] = 0
+    limit = float(env.get("NS_GIFTS_LOW_BALANCE", "50"))
+    last_alert = int(state.get("last_low_alert", 0) or 0)
+    if balance <= limit and time.time() - last_alert > 21600:
+        telegram(env, "⚠️ <b>FunZona: низкий баланс NS Gifts</b>\n\nТекущий баланс: <b>$%.2f</b>\nПорог: <b>$%.2f</b>\n\nНужно пополнить NS Gifts." % (balance, limit))
+        state["last_low_alert"] = int(time.time())
+    save_state(state)
 
 
 if __name__ == "__main__":
