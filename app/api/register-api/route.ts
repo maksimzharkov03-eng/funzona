@@ -1,4 +1,5 @@
 import { prisma } from "@/app/lib/prisma";
+import { hashPassword } from "@/app/lib/password";
 import { rateLimit } from "@/app/lib/request-security";
 import { NextResponse } from "next/server";
 
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
     const user = await prisma.user.create({
       data: {
         login: body.login,
-        password: body.password,
+        password: hashPassword(body.password),
       },
     });
 
