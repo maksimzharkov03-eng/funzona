@@ -174,7 +174,7 @@ export async function POST(req: Request) {
 
     const userLogin = currentUser.login;
 
-    const items = await resolveTrustedOrderItems(body.items);
+    const items = await resolveTrustedOrderItems(body.items, new URL(req.url).origin);
     const itemsText = buildItemsText(items);
     const totalFromItems = items.reduce(
       (sum, item) => sum + priceToNumber(item.price) * item.quantity,

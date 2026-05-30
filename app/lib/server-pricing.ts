@@ -240,7 +240,103 @@ function findTrustedItem(catalog: TrustedCatalogItem[], browserItem: BrowserCart
   return sameName[0] || null;
 }
 
-export async function resolveTrustedOrderItems(input: unknown): Promise<TrustedOrderItem[]> {
+function normalizedCatalogId(value: unknown) {
+  return cleanText(value)
+    .replace(/^ps-store-/, "")
+    .replace(/^psstore-/, "")
+    .replace(/^game-/, "")
+    .replace(/^product-/, "");
+}
+
+function safeCatalogOrigin(origin: string) {
+  try {
+    const url = new URL(origin);
+    const host = url.hostname.toLowerCase();
+    const allowed =
+      host === "localhost" ||
+      host === "127.0.0.1" ||
+      host === "funzona.vercel.app" ||
+      host.endsWith(".vercel.app");
+
+    return allowed ? url.origin : null;
+  } catch {
+    return null;
+  }
+}
+
+function gameArrayFromApiPayload(payload: unknown): Record<string, unknown>[] {
+  if (Array.isArray(payload)) {
+    return payload.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"));
+  }
+
+  if (!payload || typeof payload !== "object") return [];
+
+  const object = payload as Record<string, unknown>;
+  for (const key of ["games", "items", "data", "products", "results"]) {
+    if (Array.isArray(object[key])) {
+      return (object[key] as unknown[]).filter(
+        (item): item is Record<string, unknown> => Boolean(item && typeof item === "object")
+      );
+    }
+  }
+
+  return [];
+}
+
+async function findTrustedGameFromApi(browserItem: BrowserCartItem, origin: string) {
+  const catalogOrigin = safeCatalogOrigin(origin);
+  if (!catalogOrigin) return null;
+
+  try {
+    const res = await fetch(catalogOrigin + "/api/games", {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) return null;
+
+    const games = gameArrayFromApiPayload(await res.json());
+    const requestedId = normalizedCatalogId(browserItem.id);
+    const requestedName = normalizeProductName(browserItem.name);
+
+    const game = games.find((candidate) => {
+      const candidateId = normalizedCatalogId(candidate.id);
+      const candidateName = normalizeProductName(candidate.title || candidate.name);
+
+      if (requestedId && candidateId && requestedId === candidateId) return true;
+      if (!requestedName || !candidateName) return false;
+
+      return (
+        candidateName === requestedName ||
+        candidateName.startsWith(requestedName) ||
+        requestedName.startsWith(candidateName)
+      );
+    });
+
+    if (!game) return null;
+
+    const priceRub = parseRub(game.rubPrice || game.price);
+    const id = cleanText(game.id);
+    const name = cleanText(game.title || game.name);
+    if (!id || !name || priceRub <= 0) return null;
+
+    return {
+      ids: [id, "game-" + id, "ps-store-" + id, "psstore-" + id],
+      name,
+      category: "Игры",
+      description: [cleanText(game.platform), cleanText(game.region), cleanText(game.edition)]
+        .filter(Boolean)
+        .join(" • "),
+      priceRub,
+    } satisfies TrustedCatalogItem;
+  } catch {
+    return null;
+  }
+}
+
+export async function resolveTrustedOrderItems(
+  input: unknown,
+  origin = ""
+): Promise<TrustedOrderItem[]> {
   if (!Array.isArray(input) || input.length === 0) {
     throw new Error("Корзина пуста.");
   }
@@ -256,16 +352,24 @@ export async function resolveTrustedOrderItems(input: unknown): Promise<TrustedO
     ...(await collectDatabaseItems()),
   ];
 
-  return input.map((raw) => {
+  const result: TrustedOrderItem[] = [];
+
+  for (const raw of input) {
     const browserItem = (raw || {}) as BrowserCartItem;
-    const trusted = findTrustedItem(catalog, browserItem);
+    let trusted = findTrustedItem(catalog, browserItem);
+    const requestedCategory = normalize(browserItem.category);
+
+    if (!trusted && requestedCategory === "игры") {
+      trusted = await findTrustedGameFromApi(browserItem, origin);
+    }
+
     const quantity = Math.max(1, Math.min(50, Math.floor(Number(browserItem.quantity) || 1)));
 
     if (!trusted) {
       throw new Error("Один из товаров больше недоступен. Обновите корзину и попробуйте еще раз.");
     }
 
-    return {
+    result.push({
       id: trusted.ids[0],
       name: trusted.name,
       category: trusted.category,
@@ -273,6 +377,8 @@ export async function resolveTrustedOrderItems(input: unknown): Promise<TrustedO
       price: formatRub(trusted.priceRub),
       quantity,
       totalPrice: formatRub(trusted.priceRub * quantity),
-    };
-  });
+    });
+  }
+
+  return result;
 }
