@@ -2,6 +2,7 @@ import { prisma } from "@/app/lib/prisma";
 import * as productData from "@/app/data/products";
 import * as subscriptionData from "@/app/data/subscriptions";
 import * as psStoreData from "@/app/data/ps-store-games";
+import * as gameLibrary from "@/app/lib/games";
 
 type BrowserCartItem = {
   id?: unknown;
@@ -121,7 +122,7 @@ function collectSubscriptions(): TrustedCatalogItem[] {
 function collectStaticGames(): TrustedCatalogItem[] {
   const result: TrustedCatalogItem[] = [];
 
-  for (const array of arraysFrom(psStoreData)) {
+  for (const array of [...arraysFrom(psStoreData), ...arraysFrom(gameLibrary)]) {
     for (const raw of array) {
       if (!raw || typeof raw !== "object") continue;
       const game = raw as Record<string, unknown>;
@@ -131,7 +132,7 @@ function collectStaticGames(): TrustedCatalogItem[] {
       if (!id || !name || priceRub <= 0) continue;
 
       result.push({
-        ids: [id, "game-" + id],
+        ids: [id, "game-" + id, "ps-store-" + id, "psstore-" + id],
         name,
         category: "Игры",
         description: [cleanText(game.platform), cleanText(game.region), cleanText(game.edition)]
@@ -163,7 +164,7 @@ async function collectDatabaseItems(): Promise<TrustedCatalogItem[]> {
       .filter((product) => product.priceRub > 0),
     ...games
       .map((game) => ({
-        ids: [String(game.id), "game-" + game.id],
+        ids: [String(game.id), "game-" + game.id, "ps-store-" + game.id, "psstore-" + game.id],
         name: game.title,
         category: "Игры",
         description: [game.platform, game.region, game.edition].filter(Boolean).join(" • "),
@@ -175,9 +176,30 @@ async function collectDatabaseItems(): Promise<TrustedCatalogItem[]> {
 
 function findTrustedItem(catalog: TrustedCatalogItem[], browserItem: BrowserCartItem) {
   const requestedId = cleanText(browserItem.id);
+  const requestedCategory = normalize(browserItem.category);
   if (requestedId) {
-    const byId = catalog.find((item) => item.ids.some((id) => id === requestedId));
-    if (byId) return byId;
+    const normalizedRequestedId = requestedId
+      .replace(/^ps-store-/, "")
+      .replace(/^psstore-/, "")
+      .replace(/^game-/, "")
+      .replace(/^product-/, "");
+
+    const idMatches = catalog.filter((item) =>
+      item.ids.some((id) => {
+        const normalizedId = id
+          .replace(/^ps-store-/, "")
+          .replace(/^psstore-/, "")
+          .replace(/^game-/, "")
+          .replace(/^product-/, "");
+        return id === requestedId || normalizedId === normalizedRequestedId;
+      })
+    );
+
+    const byCategory = requestedCategory
+      ? idMatches.find((item) => normalize(item.category) === requestedCategory)
+      : null;
+    if (byCategory) return byCategory;
+    if (idMatches.length === 1) return idMatches[0];
   }
 
   const requestedName = normalizeProductName(browserItem.name);
@@ -186,7 +208,6 @@ function findTrustedItem(catalog: TrustedCatalogItem[], browserItem: BrowserCart
   const sameName = catalog.filter((item) => normalizeProductName(item.name) === requestedName);
   if (sameName.length === 1) return sameName[0];
 
-  const requestedCategory = normalize(browserItem.category);
   if (requestedCategory) {
     const sameCategory = sameName.find((item) => normalize(item.category) === requestedCategory);
     if (sameCategory) return sameCategory;
