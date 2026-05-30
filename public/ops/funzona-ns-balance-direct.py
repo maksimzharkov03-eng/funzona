@@ -193,6 +193,7 @@ def main():
         telegram(env, "⚠️ <b>FunZona: низкий баланс NS Gifts</b>\n\nТекущий баланс: <b>$%.2f</b>\nПорог: <b>$%.2f</b>\n\nНужно пополнить NS Gifts." % (balance, limit))
         state["last_low_alert"] = int(time.time())
     save_state(state)
+    report_balance(env, balance)
 
 
 if __name__ == "__main__":
