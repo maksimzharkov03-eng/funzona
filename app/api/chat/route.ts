@@ -1,21 +1,7 @@
 import { getServerUser, forbiddenJson, isAdmin as isAdminUser, unauthorizedJson } from "@/app/lib/server-auth";
 import { rateLimit } from "@/app/lib/request-security";
 import { prisma } from "@/app/lib/prisma";
-import { verifyToken } from "@/app/lib/auth";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-
-async function getPayload() {
-  const token = (await cookies()).get("token")?.value;
-
-  if (!token) return null;
-
-  try {
-    return (await verifyToken(token)) as any;
-  } catch {
-    return null;
-  }
-}
 
 function cleanText(value: unknown) {
   return String(value || "").trim().slice(0, 2000);
@@ -49,13 +35,6 @@ export async function GET(req: Request) {
   if (!currentUser) {
     return unauthorizedJson();
   }
-
-  const payload = await getPayload();
-
-  if (!payload?.login) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-  }
-
   const { searchParams } = new URL(req.url);
   const requestedChatLogin =
     searchParams.get("login") || searchParams.get("userLogin");
@@ -70,7 +49,7 @@ export async function GET(req: Request) {
   }
   const mode = searchParams.get("mode");
   const userLogin = searchParams.get("userLogin");
-  const isAdmin = payload.role === "admin" || payload.login === "admin";
+  const isAdmin = isAdminUser(currentUser);
 
   if (isAdmin && mode === "conversations") {
     const messages = await prisma.chatMessage.findMany({
@@ -102,7 +81,7 @@ export async function GET(req: Request) {
     return NextResponse.json(Array.from(conversations.values()));
   }
 
-  const targetLogin = isAdmin && userLogin ? userLogin : payload.login;
+  const targetLogin = isAdmin && userLogin ? userLogin : currentUser.login;
 
   const messages = await prisma.chatMessage.findMany({
     where: { userLogin: targetLogin },
@@ -144,13 +123,6 @@ export async function POST(req: Request) {
   if (!currentUser) {
     return unauthorizedJson();
   }
-
-  const payload = await getPayload();
-
-  if (!payload?.login) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-  }
-
   const body = await req.json();
 
   if (body.sender === "admin" && !isAdminUser(currentUser)) {
@@ -162,8 +134,8 @@ export async function POST(req: Request) {
     body.userLogin = currentUser.login;
   }
   const text = cleanText(body.text);
-  const isAdmin = payload.role === "admin" || payload.login === "admin";
-  const userLogin = isAdmin ? cleanText(body.userLogin) : payload.login;
+  const isAdmin = isAdminUser(currentUser);
+  const userLogin = isAdmin ? cleanText(body.userLogin) : currentUser.login;
 
   if (!text) {
     return NextResponse.json({ error: "Введите сообщение" }, { status: 400 });
