@@ -1,4 +1,5 @@
 import { getServerUser, forbiddenJson, isAdmin as isAdminUser, unauthorizedJson } from "@/app/lib/server-auth";
+import { resolveTrustedOrderItems } from "@/app/lib/server-pricing";
 import { rateLimit } from "@/app/lib/request-security";
 import { prisma } from "@/app/lib/prisma";
 import { verifyToken } from "@/app/lib/auth";
@@ -173,7 +174,7 @@ export async function POST(req: Request) {
 
     const userLogin = currentUser.login;
 
-    const items = normalizeOrderItems(body.items);
+    const items = await resolveTrustedOrderItems(body.items);
     const itemsText = buildItemsText(items);
     const totalFromItems = items.reduce(
       (sum, item) => sum + priceToNumber(item.price) * item.quantity,
