@@ -1,4 +1,5 @@
 import { getServerUser, forbiddenJson, isAdmin as isAdminUser, unauthorizedJson } from "@/app/lib/server-auth";
+import { rateLimit } from "@/app/lib/request-security";
 import { prisma } from "@/app/lib/prisma";
 import { verifyToken } from "@/app/lib/auth";
 import { cookies } from "next/headers";
@@ -136,6 +137,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const limited = rateLimit(req, "chat-send", 40, 300000);
+  if (limited) return limited;
   const currentUser = await getServerUser();
 
   if (!currentUser) {

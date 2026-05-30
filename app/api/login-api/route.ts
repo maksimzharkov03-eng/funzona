@@ -1,8 +1,11 @@
 import { prisma } from "@/app/lib/prisma";
+import { rateLimit } from "@/app/lib/request-security";
 import { createToken } from "@/app/lib/auth";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
+  const limited = rateLimit(req, "login", 8, 900000);
+  if (limited) return limited;
   const body = await req.json();
 
   const user = await prisma.user.findUnique({
