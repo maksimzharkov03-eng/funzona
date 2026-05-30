@@ -88,3 +88,12 @@ model AutoDeliveryLog {
   @@index([orderId, createdAt])
   @@index([status, createdAt])
 }
+
+
+model NsBalanceSnapshot {
+  id         Int      @id
+  balanceUsd Float
+  source     String   @default("vps")
+  checkedAt  DateTime
+  updatedAt  DateTime @updatedAt
+}

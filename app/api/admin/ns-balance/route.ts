@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getNsGiftsBalance } from "@/app/lib/auto-delivery";
+import { getStoredNsBalance } from "@/app/lib/ns-balance-snapshot";
 import { forbiddenJson, requireAdminUser } from "@/app/lib/server-auth";
 
 export const dynamic = "force-dynamic";
@@ -10,11 +10,10 @@ export async function GET() {
     return forbiddenJson();
   }
 
-  const startedAt = Date.now();
-  const balance = await getNsGiftsBalance();
+  const balance = await getStoredNsBalance();
 
   return NextResponse.json({
     balance,
-    durationMs: Date.now() - startedAt,
+    durationMs: 0,
   });
 }

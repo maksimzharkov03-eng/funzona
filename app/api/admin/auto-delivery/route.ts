@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
-import { attemptAutoDeliveryForOrder, getNsGiftsBalance } from "@/app/lib/auto-delivery";
+import { attemptAutoDeliveryForOrder } from "@/app/lib/auto-delivery";
+import { getStoredNsBalance } from "@/app/lib/ns-balance-snapshot";
 import { forbiddenJson, requireAdminUser } from "@/app/lib/server-auth";
 
 type NsBalanceInfo = {
@@ -78,13 +79,11 @@ export async function GET() {
     return forbiddenJson();
   }
 
-  const balance = (await getNsGiftsBalance().catch((error) => ({
+  const balance = (await getStoredNsBalance().catch((error) => ({
     available: false,
     amount: null,
     message: error instanceof Error ? error.message : String(error),
   }))) as NsBalanceInfo;
-
-  await notifyLowNsBalance(balance);
 
   const [logs, orders] = await Promise.all([
     prisma.autoDeliveryLog.findMany({

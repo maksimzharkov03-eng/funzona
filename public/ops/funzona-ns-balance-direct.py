@@ -142,6 +142,22 @@ def login(env, base):
     return token
 
 
+def report_balance(env, balance):
+    site_url = env.get("FUNZONA_SITE_URL", "https://funzona.vercel.app").rstrip("/")
+    secret = env.get("FUNZONA_BALANCE_REPORT_SECRET", "")
+    if not secret:
+        log("FUNZONA_BALANCE_REPORT_SECRET is missing")
+        return
+    status, data = request_json(
+        site_url + "/api/ops/ns-balance/report",
+        method="POST",
+        body={"balanceUsd": balance},
+        headers={"Authorization": "Bearer " + secret},
+        timeout=20,
+    )
+    log("report_balance status=" + str(status) + " data=" + json.dumps(data, ensure_ascii=False)[:300])
+
+
 def main():
     env = load_env()
     required = [

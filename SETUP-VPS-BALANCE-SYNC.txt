@@ -1,0 +1,31 @@
+Синхронизация баланса VPS -> админка FunZona
+
+1. В Vercel добавь Environment Variable:
+
+NS_BALANCE_REPORT_SECRET=FZ_NS_BAL_REPORT_2026_Q7M3K9V2
+
+Выбери Production and Preview, сохрани и сделай redeploy через git push.
+
+2. После деплоя на VPS открой настройки:
+
+nano /etc/funzona-ns-balance.env
+
+Добавь две строки:
+
+FUNZONA_SITE_URL=https://funzona.vercel.app
+FUNZONA_BALANCE_REPORT_SECRET=FZ_NS_BAL_REPORT_2026_Q7M3K9V2
+
+Сохрани: Ctrl+O, Enter, Ctrl+X.
+
+3. Обнови VPS-монитор:
+
+curl -fsSL https://funzona.vercel.app/ops/funzona-ns-balance-direct.py -o /usr/local/bin/funzona-ns-balance-direct.py
+chmod +x /usr/local/bin/funzona-ns-balance-direct.py
+/usr/local/bin/funzona-ns-balance-direct.py
+tail -n 12 /var/log/funzona-ns-balance-direct.log
+
+Ожидаемый результат:
+
+get_token status=200
+check_balance method=GET status=200 balance=...
+report_balance status=200 data=...

@@ -6,6 +6,7 @@ type NsBalance = {
   available: boolean;
   amount: number | null;
   message?: string;
+  checkedAt?: string | null;
 };
 
 function formatUsd(value?: number | null) {
@@ -70,6 +71,11 @@ export default function AdminNsBalanceStrip() {
         </p>
         {!loading && balance?.message ? <p className="mt-2 text-xs text-slate-500">{balance.message}</p> : null}
         {isLow ? <p className="mt-2 text-xs font-bold text-red-300">Ниже 50$: бот предупредит в Telegram.</p> : null}
+        {!loading && balance?.checkedAt ? (
+          <p className="mt-2 text-xs text-slate-500">
+            Последняя проверка VPS: {new Date(balance.checkedAt).toLocaleString("ru-RU")}
+          </p>
+        ) : null}
       </div>
     </div>
   );
