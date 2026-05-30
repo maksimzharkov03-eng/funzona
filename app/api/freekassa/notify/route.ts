@@ -80,7 +80,7 @@ async function sendOwnerTelegram(text: string) {
       body: JSON.stringify({ chat_id: chatId, text }),
     });
   } catch (error) {
-    console.log("PAYMENT TELEGRAM ERROR:", error);
+console.log("PAYMENT TELEGRAM ERROR:", error);
   }
 }
 

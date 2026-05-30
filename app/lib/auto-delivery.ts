@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { notifyAutoDeliveryFailure } from "@/app/lib/auto-delivery-alert";
 import { prisma } from "@/app/lib/prisma";
 
 type AutoDeliveryOrder = {
@@ -644,7 +645,7 @@ export async function getNsGiftsBalance() {
   };
 }
 
-export async function attemptAutoDeliveryForOrder(
+async function attemptAutoDeliveryForOrderUnsafe(
   order: AutoDeliveryOrder
 ): Promise<AutoDeliveryResult> {
   if (!hasNsConfig()) {
@@ -731,4 +732,16 @@ export async function attemptAutoDeliveryForOrder(
       ? "коды выданы автоматически"
       : "коды выданы, но в заказе есть товары для ручной выдачи",
   };
+}
+
+
+export async function attemptAutoDeliveryForOrder(
+  order: Parameters<typeof attemptAutoDeliveryForOrderUnsafe>[0]
+) {
+  try {
+    return await attemptAutoDeliveryForOrderUnsafe(order);
+  } catch (error) {
+    await notifyAutoDeliveryFailure(order, error);
+    throw error;
+  }
 }
