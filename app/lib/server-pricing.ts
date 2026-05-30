@@ -120,7 +120,15 @@ function collectSubscriptions(): TrustedCatalogItem[] {
 }
 
 function collectStaticGames(): TrustedCatalogItem[] {
-  const result: TrustedCatalogItem[] = [];
+  const result: TrustedCatalogItem[] = [
+    {
+      ids: ["lego-batman-legacy-of-the-dark-knight", "game-lego-batman-legacy-of-the-dark-knight"],
+      name: "LEGO® Batman™: Legacy of the Dark Knight",
+      category: "Игры",
+      description: "PS5 • Турция",
+      priceRub: 6500,
+    },
+  ];
 
   for (const array of [...arraysFrom(psStoreData), ...arraysFrom(gameLibrary)]) {
     for (const raw of array) {
