@@ -33,6 +33,14 @@ function normalize(value: unknown) {
   return String(value ?? "").trim().toLocaleLowerCase("ru-RU");
 }
 
+function normalizeProductName(value: unknown) {
+  return normalize(value)
+    .replace(/[™®©]/g, "")
+    .replace(/[–—]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function cleanText(value: unknown, max = 500) {
   return String(value ?? "").trim().slice(0, max);
 }
@@ -172,16 +180,32 @@ function findTrustedItem(catalog: TrustedCatalogItem[], browserItem: BrowserCart
     if (byId) return byId;
   }
 
-  const requestedName = normalize(browserItem.name);
+  const requestedName = normalizeProductName(browserItem.name);
   if (!requestedName) return null;
 
-  const sameName = catalog.filter((item) => normalize(item.name) === requestedName);
+  const sameName = catalog.filter((item) => normalizeProductName(item.name) === requestedName);
   if (sameName.length === 1) return sameName[0];
 
   const requestedCategory = normalize(browserItem.category);
   if (requestedCategory) {
     const sameCategory = sameName.find((item) => normalize(item.category) === requestedCategory);
     if (sameCategory) return sameCategory;
+  }
+
+  if (requestedCategory === "игры") {
+    const gameMatches = catalog.filter((item) => {
+      if (normalize(item.category) !== "игры") return false;
+      const trustedName = normalizeProductName(item.name);
+      return trustedName === requestedName || trustedName.startsWith(requestedName) || requestedName.startsWith(trustedName);
+    });
+
+    if (gameMatches.length === 1) return gameMatches[0];
+
+    const description = normalize(browserItem.description);
+    if (description) {
+      const byRegion = gameMatches.find((item) => normalize(item.description).includes(description));
+      if (byRegion) return byRegion;
+    }
   }
 
   return sameName[0] || null;
