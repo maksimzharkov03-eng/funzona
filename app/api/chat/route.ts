@@ -1,70 +1,71 @@
-import { getServerUser, forbiddenJson, isAdmin as isAdminUser, unauthorizedJson } from "@/app/lib/server-auth";
-import { rateLimit } from "@/app/lib/request-security";
 import { prisma } from "@/app/lib/prisma";
+import { rateLimit } from "@/app/lib/request-security";
+import {
+  forbiddenJson,
+  getServerUser,
+  isAdmin as isAdminUser,
+  unauthorizedJson,
+} from "@/app/lib/server-auth";
 import { NextResponse } from "next/server";
 
-function cleanText(value: unknown) {
-  return String(value || "").trim().slice(0, 2000);
+export const dynamic = "force-dynamic";
+
+function cleanText(value: unknown, max = 2000) {
+  return String(value || "").trim().slice(0, max);
 }
 
-function hideClientOrderNumber(message: any) {
-  if (message.sender === "system") return null;
+function cleanLogin(value: unknown) {
+  return cleanText(value, 180);
+}
 
-  const text = String(message.text || "");
+function clientSafeMessage(message: any) {
+  const text = String(message?.text || "")
+    .replace(/Новый заказ\s*#\d+/gi, "Новый заказ")
+    .replace(/Заказ\s*#\d+/gi, "Заказ");
 
-  if (/^Оплата по заказу #\d+ получена\. Заказ передан в работу\.?$/.test(text)) {
-    return {
-      ...message,
-      text: "Оплата получена. Заказ передан в работу.",
-    };
-  }
-
-  if (/^🛒 Новый заказ #\d+/.test(text)) {
-    return {
-      ...message,
-      text: text.replace(/^🛒 Новый заказ #\d+/, "🛒 Новый заказ отправлен"),
-    };
-  }
-
-  return message;
+  return {
+    ...message,
+    text,
+  };
 }
 
 export async function GET(req: Request) {
+  const limited = rateLimit(req, "chat-read", 80, 300000);
+  if (limited) return limited;
+
   const currentUser = await getServerUser();
 
   if (!currentUser) {
     return unauthorizedJson();
   }
-  const { searchParams } = new URL(req.url);
-  const requestedChatLogin =
-    searchParams.get("login") || searchParams.get("userLogin");
-  const chatMode = searchParams.get("mode");
 
-  if (chatMode === "conversations" && !isAdminUser(currentUser)) {
-    return forbiddenJson();
-  }
-
-  if (requestedChatLogin && !isAdminUser(currentUser) && requestedChatLogin !== currentUser.login) {
-    return forbiddenJson();
-  }
-  const mode = searchParams.get("mode");
-  const userLogin = searchParams.get("userLogin");
   const isAdmin = isAdminUser(currentUser);
+  const { searchParams } = new URL(req.url);
+  const mode = searchParams.get("mode");
+  const requestedChatLogin =
+    searchParams.get("login") || searchParams.get("userLogin") || "";
 
-  if (isAdmin && mode === "conversations") {
+  if (mode === "conversations") {
+    if (!isAdmin) {
+      return forbiddenJson();
+    }
+
     const messages = await prisma.chatMessage.findMany({
       orderBy: { createdAt: "desc" },
-      take: 500,
+      take: 700,
     });
 
     const conversations = new Map<string, any>();
 
     for (const message of messages) {
-      const current = conversations.get(message.userLogin);
+      const userLogin = cleanLogin(message.userLogin);
+      if (!userLogin) continue;
+
+      const current = conversations.get(userLogin);
 
       if (!current) {
-        conversations.set(message.userLogin, {
-          userLogin: message.userLogin,
+        conversations.set(userLogin, {
+          userLogin,
           lastText: message.text,
           lastSender: message.sender,
           lastAt: message.createdAt,
@@ -78,10 +79,22 @@ export async function GET(req: Request) {
       }
     }
 
-    return NextResponse.json(Array.from(conversations.values()));
+    return NextResponse.json(Array.from(conversations.values()), {
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 
-  const targetLogin = isAdmin && userLogin ? userLogin : currentUser.login;
+  const targetLogin = isAdmin ? cleanLogin(requestedChatLogin) : currentUser.login;
+
+  if (isAdmin && !targetLogin) {
+    return NextResponse.json([], {
+      headers: { "Cache-Control": "no-store" },
+    });
+  }
+
+  if (!isAdmin && requestedChatLogin && requestedChatLogin !== currentUser.login) {
+    return forbiddenJson();
+  }
 
   const messages = await prisma.chatMessage.findMany({
     where: { userLogin: targetLogin },
@@ -97,57 +110,67 @@ export async function GET(req: Request) {
       },
       data: { readByAdmin: true },
     });
-  } else {
-    await prisma.chatMessage.updateMany({
-      where: {
-        userLogin: targetLogin,
-        sender: "admin",
-        readByUser: false,
-      },
-      data: { readByUser: true },
+
+    return NextResponse.json(messages, {
+      headers: { "Cache-Control": "no-store" },
     });
   }
 
-  if (!isAdmin) {
-    return NextResponse.json(messages.map(hideClientOrderNumber).filter(Boolean));
-  }
+  await prisma.chatMessage.updateMany({
+    where: {
+      userLogin: targetLogin,
+      sender: "admin",
+      readByUser: false,
+    },
+    data: { readByUser: true },
+  });
 
-  return NextResponse.json(messages);
+  return NextResponse.json(messages.map(clientSafeMessage), {
+    headers: { "Cache-Control": "no-store" },
+  });
 }
 
 export async function POST(req: Request) {
   const limited = rateLimit(req, "chat-send", 40, 300000);
   if (limited) return limited;
+
   const currentUser = await getServerUser();
 
   if (!currentUser) {
     return unauthorizedJson();
   }
-  const body = await req.json();
 
-  if (body.sender === "admin" && !isAdminUser(currentUser)) {
-    return forbiddenJson();
-  }
-
-  if (body.sender !== "admin") {
-    body.sender = "user";
-    body.userLogin = currentUser.login;
-  }
-  const text = cleanText(body.text);
   const isAdmin = isAdminUser(currentUser);
-  const userLogin = isAdmin ? cleanText(body.userLogin) : currentUser.login;
+  const body = await req.json();
+  const text = cleanText(body.text);
 
   if (!text) {
-    return NextResponse.json({ error: "Введите сообщение" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Сообщение не может быть пустым" },
+      { status: 400 },
+    );
   }
 
-  if (!userLogin) {
-    return NextResponse.json({ error: "Не выбран клиент" }, { status: 400 });
+  const targetLogin = isAdmin
+    ? cleanLogin(
+        body.userLogin ||
+          body.login ||
+          body.targetLogin ||
+          body.clientLogin ||
+          body.conversationLogin,
+      )
+    : currentUser.login;
+
+  if (isAdmin && (!targetLogin || targetLogin.toLowerCase() === "admin")) {
+    return NextResponse.json(
+      { error: "Выбери клиента слева перед отправкой ответа." },
+      { status: 400 },
+    );
   }
 
   const message = await prisma.chatMessage.create({
     data: {
-      userLogin,
+      userLogin: targetLogin,
       sender: isAdmin ? "admin" : "user",
       text,
       readByAdmin: isAdmin,
