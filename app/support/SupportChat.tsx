@@ -123,10 +123,6 @@ export default function SupportChat() {
           <p className="text-gray-400">Загружаем чат...</p>
         ) : messages.length === 0 ? (
           <div className="flex h-full items-center justify-center text-center">
-            <div>
-              <h3 className="text-2xl font-black text-yellow-400">Напиши первый вопрос</h3>
-              <p className="mt-2 text-gray-400">Мы увидим его в админке и ответим здесь.</p>
-            </div>
           </div>
         ) : (
           <div className="space-y-3">
