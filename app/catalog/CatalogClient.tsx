@@ -469,7 +469,47 @@ export default function CatalogClient() {
   const [category, setCategory] = useState(() => getInitialCatalogCategory() as any);
   
   
-  useEffect(function forceGiftCodesPageMode() {
+  
+  useEffect(function hideWrongCardsOnGiftCodesPage() {
+    if (typeof window === "undefined") return;
+
+    const rawCategory = new URLSearchParams(window.location.search).get("category") || "";
+    let urlCategory = rawCategory;
+
+    try {
+      urlCategory = decodeURIComponent(rawCategory);
+    } catch {}
+
+    const isGiftCodesPage = urlCategory.trim() === "Подарочные коды";
+    if (!isGiftCodesPage) return;
+
+    const hideWrongCards = () => {
+      const nodes = Array.from(document.querySelectorAll<HTMLElement>("button, a, div"));
+
+      for (const node of nodes) {
+        const text = (node.textContent || "").replace(/\s+/g, " ").trim();
+        const isSubscriptionsCard =
+          text.length < 90 &&
+          text.includes("Подписки") &&
+          text.includes("PS Plus");
+        const isChatGptCard =
+          text.length < 90 &&
+          text.includes("ChatGPT") &&
+          text.includes("AI");
+
+        if (isSubscriptionsCard || isChatGptCard) {
+          node.style.display = "none";
+        }
+      }
+    };
+
+    hideWrongCards();
+    const timeoutId = window.setTimeout(hideWrongCards, 80);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [category]);
+
+useEffect(function forceGiftCodesPageMode() {
     if (typeof window === "undefined") return;
 
     const rawCategory = new URLSearchParams(window.location.search).get("category") || "";
