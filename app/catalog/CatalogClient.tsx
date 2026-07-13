@@ -29,10 +29,7 @@ type CatalogCartItem = {
   quantity: number;
 };
 
-const categories = [
-  { name: "Все", icon: "✦", hint: "Витрина" },
-  { name: "Игры", icon: "◆", hint: "PS4/PS5" },
-  { name: "Подписки", icon: "▣", hint: "PS Plus" },
+const categories = [{ name: "Подписки", icon: "▣", hint: "PS Plus" },
   { name: "ChatGPT", icon: "⌘", hint: "AI" },
   { name: "Apple ID", icon: "●", hint: "Коды" },
 ];
