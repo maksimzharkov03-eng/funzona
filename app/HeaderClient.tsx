@@ -80,6 +80,9 @@ export default function HeaderClient() {
           <a href="/catalog" className="hover:text-yellow-400 transition">Каталог</a>
           <a href="/cart" className="hover:text-yellow-400 transition">Корзина</a>
           <a href="/support" className="hover:text-yellow-400 transition">Поддержка</a>
+          <a href="/#reviews" className="text-sm font-black text-slate-200 transition hover:text-yellow-400">
+            Отзывы
+          </a>
           <a href="/faq" className="hover:text-yellow-400 transition">FAQ</a>
         </nav>
 
