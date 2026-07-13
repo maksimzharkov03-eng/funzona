@@ -11,6 +11,10 @@ function cleanText(value: unknown, max = 500) {
 export async function GET() {
   try {
     const reviews = await prisma.review.findMany({
+      where: {
+        isPublished: true,
+        status: "Опубликован",
+      },
       orderBy: { createdAt: "desc" },
       take: 24,
     });
@@ -34,25 +38,35 @@ export async function POST(req: Request) {
       return unauthorizedJson("Чтобы оставить отзыв, войди в аккаунт после получения товара.");
     }
 
-    const completedOrder = await prisma.order.findFirst({
+    const deliveredOrder = await prisma.order.findFirst({
       where: {
         userLogin: currentUser.login,
-        status: {
-          in: ["Выдан"],
-        },
+        status: "Выдан",
       },
       select: { id: true },
     });
 
-    if (!completedOrder) {
+    if (!deliveredOrder) {
       return NextResponse.json(
         { error: "Отзыв можно оставить только после выдачи товара." },
         { status: 403 },
       );
     }
 
+    const existingReview = await prisma.review.findUnique({
+      where: { userLogin: currentUser.login },
+      select: { id: true, status: true },
+    });
+
+    if (existingReview) {
+      return NextResponse.json(
+        { error: "Вы уже оставили отзыв. Один клиент может оставить только один отзыв." },
+        { status: 409 },
+      );
+    }
+
     const body = await req.json();
-    const name = cleanText(body.name, 40) || "Клиент FunZona";
+    const name = cleanText(body.name, 40) || currentUser.login;
     const text = cleanText(body.text, 600);
     const rating = Math.max(1, Math.min(5, Number(body.rating || 5)));
 
@@ -65,13 +79,22 @@ export async function POST(req: Request) {
 
     const review = await prisma.review.create({
       data: {
+        userLogin: currentUser.login,
         name,
         text,
         rating,
+        status: "На проверке",
+        isPublished: false,
       },
     });
 
-    return NextResponse.json(review, { status: 201 });
+    return NextResponse.json(
+      {
+        ...review,
+        message: "Отзыв отправлен на проверку. После одобрения он появится на сайте.",
+      },
+      { status: 201 },
+    );
   } catch (error: any) {
     return NextResponse.json(
       { error: error?.message || "Не удалось сохранить отзыв" },

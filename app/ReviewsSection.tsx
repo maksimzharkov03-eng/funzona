@@ -10,30 +10,6 @@ type Review = {
   createdAt: string;
 };
 
-const fallbackReviews: Review[] = [
-  {
-    id: -1,
-    name: "Клиент FunZona",
-    rating: 5,
-    text: "Быстро оформили подписку, все объяснили и помогли после оплаты.",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: -2,
-    name: "Алексей",
-    rating: 5,
-    text: "Покупал игру для турецкого региона, заказ прошел спокойно, поддержка на связи.",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: -3,
-    name: "Мария",
-    rating: 5,
-    text: "Удобно, что можно оформить прямо на сайте и потом общаться в чате.",
-    createdAt: new Date().toISOString(),
-  },
-];
-
 function Stars({ value }: { value: number }) {
   return (
     <div className="flex gap-1 text-yellow-400" aria-label={`Оценка ${value} из 5`}>
@@ -45,14 +21,14 @@ function Stars({ value }: { value: number }) {
 }
 
 export default function ReviewsSection() {
-  const [reviews, setReviews] = useState<Review[]>(fallbackReviews);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [name, setName] = useState("");
   const [text, setText] = useState("");
   const [rating, setRating] = useState(5);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [canReview, setCanReview] = useState(false);
-  const [eligibilityReason, setEligibilityReason] = useState("Кнопка отзыва появится после выдачи товара.");
+  const [eligibilityReason, setEligibilityReason] = useState("");
   const [formOpen, setFormOpen] = useState(false);
 
   useEffect(() => {
@@ -61,7 +37,7 @@ export default function ReviewsSection() {
     fetch("/api/reviews", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
-        if (mounted && Array.isArray(data) && data.length > 0) {
+        if (mounted && Array.isArray(data)) {
           setReviews(data);
         }
       })
@@ -104,12 +80,13 @@ export default function ReviewsSection() {
         throw new Error(data?.error || "Не удалось отправить отзыв");
       }
 
-      setReviews((items) => [data, ...items.filter((item) => item.id > 0)]);
       setName("");
       setText("");
       setRating(5);
       setFormOpen(false);
-      setMessage("Спасибо, отзыв добавлен.");
+      setCanReview(false);
+      setEligibilityReason("Ваш отзыв отправлен на проверку.");
+      setMessage(data?.message || "Отзыв отправлен на проверку.");
     } catch (error: any) {
       setMessage(error?.message || "Не удалось отправить отзыв");
     } finally {
@@ -140,26 +117,35 @@ export default function ReviewsSection() {
 
         <div className="grid gap-5 lg:grid-cols-[1fr_380px]">
           <div className="grid gap-4 sm:grid-cols-2">
-            {reviews.slice(0, 6).map((review) => (
-              <article
-                key={review.id}
-                className="rounded-2xl border border-yellow-400/15 bg-white/[0.04] p-5"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <h3 className="font-black text-white">{review.name}</h3>
-                  <Stars value={review.rating} />
-                </div>
-                <p className="mt-4 text-sm font-semibold leading-6 text-slate-300">
-                  {review.text}
+            {reviews.length === 0 ? (
+              <div className="rounded-2xl border border-yellow-400/15 bg-white/[0.04] p-5 sm:col-span-2">
+                <h3 className="font-black text-white">Пока отзывов нет</h3>
+                <p className="mt-3 text-sm font-semibold leading-6 text-slate-300">
+                  Здесь появятся отзывы клиентов после проверки администратором.
                 </p>
-              </article>
-            ))}
+              </div>
+            ) : (
+              reviews.slice(0, 6).map((review) => (
+                <article
+                  key={review.id}
+                  className="rounded-2xl border border-yellow-400/15 bg-white/[0.04] p-5"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="font-black text-white">{review.name}</h3>
+                    <Stars value={review.rating} />
+                  </div>
+                  <p className="mt-4 text-sm font-semibold leading-6 text-slate-300">
+                    {review.text}
+                  </p>
+                </article>
+              ))
+            )}
           </div>
 
           <div className="rounded-3xl border border-yellow-400/20 bg-white/[0.05] p-5">
             <h3 className="text-2xl font-black text-white">Оставить отзыв</h3>
             <p className="mt-2 text-sm font-bold leading-6 text-slate-400">
-              Отзыв можно оставить только после выдачи товара.
+              Отзыв можно оставить один раз после выдачи товара. Перед публикацией он попадет на проверку.
             </p>
 
             {!canReview ? (
@@ -221,12 +207,12 @@ export default function ReviewsSection() {
                   disabled={loading}
                   className="mt-5 flex min-h-[54px] w-full items-center justify-center rounded-xl bg-yellow-400 px-5 py-3 text-base font-black text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {loading ? "Отправляем..." : "Опубликовать отзыв"}
+                  {loading ? "Отправляем..." : "Отправить на проверку"}
                 </button>
               </form>
             )}
 
-            {canReview && !formOpen && message ? (
+            {!formOpen && message ? (
               <p className="mt-3 text-sm font-bold text-yellow-400">{message}</p>
             ) : null}
           </div>

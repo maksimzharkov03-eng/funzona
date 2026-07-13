@@ -10,7 +10,22 @@ export async function GET() {
   if (!currentUser) {
     return NextResponse.json({
       canReview: false,
-      reason: "Войди в аккаунт, чтобы оставить отзыв после выдачи товара.",
+      reason: "Войди в аккаунт. Кнопка отзыва появится после выдачи товара.",
+    });
+  }
+
+  const existingReview = await prisma.review.findUnique({
+    where: { userLogin: currentUser.login },
+    select: { status: true, isPublished: true },
+  });
+
+  if (existingReview) {
+    return NextResponse.json({
+      canReview: false,
+      reason:
+        existingReview.status === "Опубликован"
+          ? "Ваш отзыв уже опубликован."
+          : "Ваш отзыв уже отправлен на проверку.",
     });
   }
 

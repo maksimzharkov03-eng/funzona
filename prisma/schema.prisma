@@ -100,10 +100,17 @@ model NsBalanceSnapshot {
 
 model Review {
   id        Int      @id @default(autoincrement())
+  userLogin   String?  @unique
   name      String
   rating    Int      @default(5)
   text      String
+  status      String   @default("На проверке")
+  isPublished Boolean  @default(false)
   createdAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([createdAt])
+
+  @@index([isPublished, createdAt])
+  @@index([status, createdAt])
 }

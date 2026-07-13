@@ -223,6 +223,15 @@ export default function AdminPage() {
   if (checkingAdmin) {
     return (
       <main className="min-h-screen bg-black px-6 py-10 text-white">
+      <div className="mx-auto mb-4 max-w-6xl">
+        <a
+          href="/admin/reviews"
+          className="inline-flex rounded-xl border border-yellow-400/40 px-4 py-3 text-sm font-black text-white hover:bg-yellow-400/10"
+        >
+          Модерация отзывов
+        </a>
+      </div>
+
         <div className="mx-auto max-w-3xl rounded-3xl border border-yellow-400/20 bg-white/5 p-8 font-black text-yellow-400">
           Проверяем доступ...
         </div>
