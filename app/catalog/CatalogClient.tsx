@@ -44,7 +44,7 @@ const quickCards = [
   {
     title: "Подарочные коды",
     subtitle: "Cods PSN, Apple ID",
-    href: "/catalog?category=Apple%20ID",
+    href: "/catalog?category=%D0%9F%D0%BE%D0%B4%D0%B0%D1%80%D0%BE%D1%87%D0%BD%D1%8B%D0%B5%20%D0%BA%D0%BE%D0%B4%D1%8B",
     icon: "●",
   },
   {
@@ -542,7 +542,7 @@ const filteredProducts = useMemo(() => {
   const appleProducts = useMemo(
     () =>
       products
-        .filter((product) => product.category === "Apple ID")
+        .filter((product) => product.category === "Подарочные коды")
         .filter((product) => getAppleRegion(product) === appleRegion),
     [appleRegion, products]
   );
@@ -571,7 +571,7 @@ const filteredProducts = useMemo(() => {
   }, [catalogCart, category]);
 
   const appleCatalogCart = useMemo(
-    () => catalogCart.filter((item) => item.product.category === "Apple ID"),
+    () => catalogCart.filter((item) => item.product.category === "Подарочные коды"),
     [catalogCart]
   );
 
@@ -723,7 +723,7 @@ const filteredProducts = useMemo(() => {
               <p className="text-2xl font-black text-yellow-400">
                 {category === "Подписки"
                   ? subscriptionCount
-                  : category === "Apple ID"
+                  : category === "Подарочные коды"
                     ? appleProducts.length
                     : filteredProducts.length}
               </p>
@@ -928,7 +928,7 @@ const filteredProducts = useMemo(() => {
               />
             </div>
           </section>
-        ) : category === "Apple ID" ? (
+        ) : category === "Подарочные коды" ? (
           <section>
             <div className="mb-5 rounded-3xl border border-white/10 bg-[linear-gradient(135deg,#27272c,#14131a)] p-6 sm:p-8 overflow-hidden">
               <div className="flex items-center justify-between gap-5">
