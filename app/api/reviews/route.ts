@@ -31,14 +31,14 @@ export async function POST(req: Request) {
     const currentUser = await getServerUser();
 
     if (!currentUser) {
-      return unauthorizedJson("Чтобы оставить отзыв, войди в аккаунт после покупки.");
+      return unauthorizedJson("Чтобы оставить отзыв, войди в аккаунт после получения товара.");
     }
 
     const completedOrder = await prisma.order.findFirst({
       where: {
         userLogin: currentUser.login,
         status: {
-          in: ["Оплачен", "В работе", "Выдан"],
+          in: ["Выдан"],
         },
       },
       select: { id: true },
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
 
     if (!completedOrder) {
       return NextResponse.json(
-        { error: "Отзыв можно оставить только после оплаченной сделки." },
+        { error: "Отзыв можно оставить только после выдачи товара." },
         { status: 403 },
       );
     }

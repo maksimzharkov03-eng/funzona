@@ -51,6 +51,9 @@ export default function ReviewsSection() {
   const [rating, setRating] = useState(5);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [canReview, setCanReview] = useState(false);
+  const [eligibilityReason, setEligibilityReason] = useState("Кнопка отзыва появится после выдачи товара.");
+  const [formOpen, setFormOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -61,6 +64,15 @@ export default function ReviewsSection() {
         if (mounted && Array.isArray(data) && data.length > 0) {
           setReviews(data);
         }
+      })
+      .catch(() => {});
+
+    fetch("/api/reviews/eligibility", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!mounted || !data) return;
+        setCanReview(Boolean(data.canReview));
+        setEligibilityReason(String(data.reason || ""));
       })
       .catch(() => {});
 
@@ -96,6 +108,7 @@ export default function ReviewsSection() {
       setName("");
       setText("");
       setRating(5);
+      setFormOpen(false);
       setMessage("Спасибо, отзыв добавлен.");
     } catch (error: any) {
       setMessage(error?.message || "Не удалось отправить отзыв");
@@ -143,61 +156,80 @@ export default function ReviewsSection() {
             ))}
           </div>
 
-          <form
-            onSubmit={submitReview}
-            className="rounded-3xl border border-yellow-400/20 bg-white/[0.05] p-5"
-          >
+          <div className="rounded-3xl border border-yellow-400/20 bg-white/[0.05] p-5">
             <h3 className="text-2xl font-black text-white">Оставить отзыв</h3>
             <p className="mt-2 text-sm font-bold leading-6 text-slate-400">
-              Отзывы публикуются только после оплаченной сделки в FunZona.
+              Отзыв можно оставить только после выдачи товара.
             </p>
 
-            <label className="mt-5 block text-sm font-black uppercase text-slate-300">
-              Имя
-              <input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="Как вас подписать"
-                className="mt-2 w-full rounded-xl border border-yellow-400/20 bg-black px-4 py-3 text-base font-bold text-white outline-none transition focus:border-yellow-400"
-              />
-            </label>
-
-            <label className="mt-4 block text-sm font-black uppercase text-slate-300">
-              Оценка
-              <select
-                value={rating}
-                onChange={(event) => setRating(Number(event.target.value))}
-                className="mt-2 w-full rounded-xl border border-yellow-400/20 bg-black px-4 py-3 text-base font-bold text-white outline-none transition focus:border-yellow-400"
+            {!canReview ? (
+              <div className="mt-5 rounded-2xl border border-yellow-400/20 bg-yellow-400/10 p-4">
+                <p className="text-sm font-black leading-6 text-yellow-400">
+                  {eligibilityReason || "Кнопка отзыва появится после выдачи товара."}
+                </p>
+              </div>
+            ) : !formOpen ? (
+              <button
+                type="button"
+                onClick={() => setFormOpen(true)}
+                className="mt-5 flex min-h-[54px] w-full items-center justify-center rounded-xl bg-yellow-400 px-5 py-3 text-base font-black text-black transition hover:bg-yellow-300"
               >
-                <option value={5}>5 звезд</option>
-                <option value={4}>4 звезды</option>
-                <option value={3}>3 звезды</option>
-                <option value={2}>2 звезды</option>
-                <option value={1}>1 звезда</option>
-              </select>
-            </label>
+                Оставить отзыв
+              </button>
+            ) : (
+              <form onSubmit={submitReview} className="mt-5">
+                <label className="block text-sm font-black uppercase text-slate-300">
+                  Имя
+                  <input
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    placeholder="Как вас подписать"
+                    className="mt-2 w-full rounded-xl border border-yellow-400/20 bg-black px-4 py-3 text-base font-bold text-white outline-none transition focus:border-yellow-400"
+                  />
+                </label>
 
-            <label className="mt-4 block text-sm font-black uppercase text-slate-300">
-              Отзыв
-              <textarea
-                value={text}
-                onChange={(event) => setText(event.target.value)}
-                placeholder="Отзыв можно оставить после оплаченной сделки"
-                rows={5}
-                className="mt-2 w-full resize-none rounded-xl border border-yellow-400/20 bg-black px-4 py-3 text-base font-bold text-white outline-none transition focus:border-yellow-400"
-              />
-            </label>
+                <label className="mt-4 block text-sm font-black uppercase text-slate-300">
+                  Оценка
+                  <select
+                    value={rating}
+                    onChange={(event) => setRating(Number(event.target.value))}
+                    className="mt-2 w-full rounded-xl border border-yellow-400/20 bg-black px-4 py-3 text-base font-bold text-white outline-none transition focus:border-yellow-400"
+                  >
+                    <option value={5}>5 звезд</option>
+                    <option value={4}>4 звезды</option>
+                    <option value={3}>3 звезды</option>
+                    <option value={2}>2 звезды</option>
+                    <option value={1}>1 звезда</option>
+                  </select>
+                </label>
 
-            {message ? <p className="mt-3 text-sm font-bold text-yellow-400">{message}</p> : null}
+                <label className="mt-4 block text-sm font-black uppercase text-slate-300">
+                  Отзыв
+                  <textarea
+                    value={text}
+                    onChange={(event) => setText(event.target.value)}
+                    placeholder="Напишите пару слов о покупке"
+                    rows={5}
+                    className="mt-2 w-full resize-none rounded-xl border border-yellow-400/20 bg-black px-4 py-3 text-base font-bold text-white outline-none transition focus:border-yellow-400"
+                  />
+                </label>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-5 flex min-h-[54px] w-full items-center justify-center rounded-xl bg-yellow-400 px-5 py-3 text-base font-black text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading ? "Отправляем..." : "Опубликовать отзыв после сделки"}
-            </button>
-          </form>
+                {message ? <p className="mt-3 text-sm font-bold text-yellow-400">{message}</p> : null}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="mt-5 flex min-h-[54px] w-full items-center justify-center rounded-xl bg-yellow-400 px-5 py-3 text-base font-black text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {loading ? "Отправляем..." : "Опубликовать отзыв"}
+                </button>
+              </form>
+            )}
+
+            {canReview && !formOpen && message ? (
+              <p className="mt-3 text-sm font-bold text-yellow-400">{message}</p>
+            ) : null}
+          </div>
         </div>
       </div>
     </section>
