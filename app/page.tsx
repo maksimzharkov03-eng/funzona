@@ -34,7 +34,38 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-black text-white overflow-hidden">
       
-      <section className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
+            <section className="relative overflow-hidden border-b border-yellow-400/10 bg-[radial-gradient(circle_at_top,rgba(255,204,0,0.28),transparent_48%),linear-gradient(180deg,#171400_0%,#050500_100%)] px-6 py-16 text-center sm:py-20 lg:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto mb-7 inline-flex rounded-full border border-yellow-400/30 bg-yellow-400/10 px-5 py-2 text-xs font-black uppercase tracking-[0.16em] text-yellow-400">
+            ⚡ Premium Digital Store
+          </div>
+
+          <h1 className="text-6xl font-black leading-none text-yellow-400 sm:text-7xl md:text-8xl lg:text-9xl">
+            FUNZONA
+          </h1>
+
+          <p className="mx-auto mt-7 max-w-3xl text-base font-bold leading-7 text-slate-200 sm:text-lg">
+            Подписки, пополнения и цифровые товары в одном месте.
+          </p>
+
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <a
+              href="/catalog"
+              className="w-full rounded-xl bg-yellow-400 px-7 py-4 text-center text-sm font-black text-black transition hover:bg-yellow-300 sm:w-auto"
+            >
+              Перейти в каталог
+            </a>
+            <a
+              href="/support"
+              className="w-full rounded-xl border border-yellow-400/50 px-7 py-4 text-center text-sm font-black text-white transition hover:bg-yellow-400/10 sm:w-auto"
+            >
+              Поддержка
+            </a>
+          </div>
+        </div>
+      </section>
+
+<section className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="mb-8 text-center">
           <p className="text-sm font-black uppercase tracking-[0.16em] text-yellow-400">
             Быстрый выбор
