@@ -48,28 +48,28 @@ export default function Home() {
             Подписки, пополнения и цифровые товары в одном месте.
           </p>
 
-          <div className="mt-8 grid w-full max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 mx-auto">
+          <div className="mx-auto mt-8 grid w-full max-w-4xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <a
               href="/catalog"
-              className="rounded-xl bg-yellow-400 px-5 py-4 text-center text-sm font-black text-black transition hover:bg-yellow-300"
+              className="rounded-xl bg-yellow-400 px-6 py-4 text-center text-base font-black leading-tight text-black transition hover:bg-yellow-300"
             >
               Перейти в каталог
             </a>
             <a
               href="#popular"
-              className="rounded-xl border border-yellow-400/50 px-5 py-4 text-center text-sm font-black text-white transition hover:bg-yellow-400/10"
+              className="rounded-xl border border-yellow-400/50 px-6 py-4 text-center text-base font-black leading-tight text-white transition hover:bg-yellow-400/10"
             >
               Популярные товары
             </a>
             <a
               href="/support"
-              className="rounded-xl border border-yellow-400/50 px-5 py-4 text-center text-sm font-black text-white transition hover:bg-yellow-400/10"
+              className="rounded-xl border border-yellow-400/50 px-6 py-4 text-center text-base font-black leading-tight text-white transition hover:bg-yellow-400/10"
             >
               Поддержка
             </a>
             <a
               href="#reviews"
-              className="rounded-xl border border-yellow-400/50 px-5 py-4 text-center text-sm font-black text-white transition hover:bg-yellow-400/10"
+              className="rounded-xl border border-yellow-400/50 px-6 py-4 text-center text-base font-black leading-tight text-white transition hover:bg-yellow-400/10"
             >
               Отзывы
             </a>
