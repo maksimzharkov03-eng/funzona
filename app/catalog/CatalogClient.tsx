@@ -454,7 +454,7 @@ function CatalogCheckoutPanel({
 export default function CatalogClient() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
-  const [category, setCategory] = useState("Все");
+  const [category, setCategory] = useState("Подписки");
   const [subscriptionSubcategory, setSubscriptionSubcategory] = useState<"all" | "gpt" | "ps" | "xbox">("all");
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
