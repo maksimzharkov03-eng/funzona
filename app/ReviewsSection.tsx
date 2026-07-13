@@ -144,9 +144,6 @@ export default function ReviewsSection() {
 
           <div className="rounded-3xl border border-yellow-400/20 bg-white/[0.05] p-5">
             <h3 className="text-2xl font-black text-white">Оставить отзыв</h3>
-            <p className="mt-2 text-sm font-bold leading-6 text-slate-400">
-              Отзыв можно оставить один раз после выдачи товара. Перед публикацией он попадет на проверку.
-            </p>
 
             {!canReview ? (
               <div className="mt-5 rounded-2xl border border-yellow-400/20 bg-yellow-400/10 p-4">
