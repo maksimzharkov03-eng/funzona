@@ -468,7 +468,56 @@ export default function CatalogClient() {
   const [products, setProducts] = useState<Product[]>([]);
   const [category, setCategory] = useState(() => getInitialCatalogCategory() as any);
   
-  useEffect(function syncGiftCodesCategoryFromUrl() {
+  
+  useEffect(function forceGiftCodesPageMode() {
+    if (typeof window === "undefined") return;
+
+    const rawCategory = new URLSearchParams(window.location.search).get("category") || "";
+    let urlCategory = rawCategory;
+
+    try {
+      urlCategory = decodeURIComponent(rawCategory);
+    } catch {}
+
+    const isGiftCodesPage = urlCategory.trim() === "Подарочные коды";
+
+    if (isGiftCodesPage && category !== "Apple ID") {
+      setCategory("Apple ID" as any);
+    }
+
+    const hideSubscriptionOnlyUi = () => {
+      const shouldHide = isGiftCodesPage || category !== "Подписки";
+      const nodes = Array.from(
+        document.querySelectorAll<HTMLElement>("section, aside, div"),
+      );
+
+      for (const node of nodes) {
+        const text = (node.textContent || "").replace(/\s+/g, " ").trim();
+        const isSubscriptionFilter =
+          text.length < 700 &&
+          text.includes("Все подписки") &&
+          text.includes("GPT") &&
+          text.includes("PS+") &&
+          text.includes("Xbox");
+        const isSubscriptionCheckout =
+          text.length < 1200 &&
+          text.includes("ОФОРМЛЕНИЕ") &&
+          text.toLowerCase().includes("подписки") &&
+          text.includes("Выбери тариф");
+
+        if (isSubscriptionFilter || isSubscriptionCheckout) {
+          node.style.display = shouldHide ? "none" : "";
+        }
+      }
+    };
+
+    hideSubscriptionOnlyUi();
+    const timeoutId = window.setTimeout(hideSubscriptionOnlyUi, 60);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [category, setCategory]);
+
+useEffect(function syncGiftCodesCategoryFromUrl() {
     const initialCategory = getInitialCatalogCategory();
 
     if (initialCategory !== category) {
