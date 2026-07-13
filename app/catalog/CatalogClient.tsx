@@ -40,19 +40,19 @@ const categories = [
 const quickCards = [
   {
     title: "Подписки",
-    subtitle: "ПС+ ,Чат gpt, хbox",
+    subtitle: "PS+, Chat GPT, Xbox",
     href: "/catalog?category=ChatGPT",
     icon: "⌘",
   },
   {
     title: "Подарочные коды",
-    subtitle: "коды псн, эпл",
+    subtitle: "Cods PSN, Apple ID",
     href: "/catalog?category=Apple%20ID",
     icon: "●",
   },
   {
     title: "Прямое пополнение",
-    subtitle: "стим и различные мобильные игры",
+    subtitle: "Steam и мобильные игры",
     href: "/games",
     icon: "◆",
   },
