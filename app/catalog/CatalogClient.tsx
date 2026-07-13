@@ -455,6 +455,7 @@ export default function CatalogClient() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [category, setCategory] = useState("Все");
+  const [subscriptionSubcategory, setSubscriptionSubcategory] = useState<"all" | "gpt" | "ps" | "xbox">("all");
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [toast, setToast] = useState("");
@@ -512,7 +513,31 @@ export default function CatalogClient() {
     loadProducts();
   }, []);
 
-  const filteredProducts = useMemo(() => {
+  
+  const subscriptionMatchesSubcategory = (product: Product) => {
+    if (category !== "Подписки" || subscriptionSubcategory === "all") return true;
+
+    const text = [product.name, product.category, product.description]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    if (subscriptionSubcategory === "gpt") {
+      return text.includes("chatgpt") || text.includes("chat gpt") || text.includes("gpt");
+    }
+
+    if (subscriptionSubcategory === "ps") {
+      return text.includes("playstation") || text.includes("ps plus") || text.includes("ps+") || text.includes("essential") || text.includes("extra") || text.includes("deluxe") || text.includes("ea play");
+    }
+
+    if (subscriptionSubcategory === "xbox") {
+      return text.includes("xbox") || text.includes("game pass");
+    }
+
+    return true;
+  };
+
+const filteredProducts = useMemo(() => {
     if (category === "Все") return products;
     return products.filter((product) => product.category === category);
   }, [category, products]);
@@ -872,7 +897,32 @@ export default function CatalogClient() {
                 ))}
               </div>
 
-              <SubscriptionCheckoutPanel
+                      {category === "Подписки" ? (
+          <div className="mt-4 flex flex-wrap gap-3">
+            {[
+              ["all", "Все подписки"],
+              ["gpt", "GPT"],
+              ["ps", "PS+"],
+              ["xbox", "Xbox"],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setSubscriptionSubcategory(value as "all" | "gpt" | "ps" | "xbox")}
+                className={
+                  "rounded-xl border px-5 py-3 text-sm font-black transition " +
+                  (subscriptionSubcategory === value
+                    ? "border-yellow-400 bg-yellow-400 text-black"
+                    : "border-yellow-400/30 bg-black text-white hover:bg-yellow-400/10")
+                }
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+<SubscriptionCheckoutPanel
                 items={subscriptionCart}
                 updateItem={updateSubscriptionItem}
                 removeItem={removeSubscriptionItem}
