@@ -41,12 +41,10 @@ export default function Home() {
             ⚡ PREMIUM DIGITAL STORE
           </div>
 
-          <h1 className="text-5xl sm:text-6xl md:text-9xl font-black text-yellow-400 drop-shadow-[0_0_45px_rgba(255,212,0,0.65)]">
-            FUNZONA
-          </h1>
+          <h1 className="text-5xl sm:text-6xl md:text-9xl font-black text-yellow-400 drop-shadow-[0_0_45px_rgba(255,212,0,0.65)]">Цифровые товары для PlayStation, ChatGPT и Apple ID</h1>
 
           <p className="mt-6 sm:mt-8 text-lg sm:text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto">
-            Подписки, пополнения и цифровые товары в одном месте.
+            PS Plus, игры, пополнение PSN, ChatGPT, Apple ID и другие цифровые услуги с быстрым оформлением.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 sm:gap-5">
@@ -60,9 +58,18 @@ export default function Home() {
             <a
               href="/support"
               className="border border-yellow-400 px-6 sm:px-9 py-4 rounded-2xl font-black hover:bg-yellow-400/10 hover:scale-105 transition"
-            >
-              Поддержка
-            </a>
+            >Написать менеджеру</a>
+          </div>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-sm font-bold text-slate-200">
+            <span className="rounded-full border border-yellow-400/25 bg-black/35 px-4 py-2">
+              Выполнение от 5 до 30 минут
+            </span>
+            <span className="rounded-full border border-yellow-400/25 bg-black/35 px-4 py-2">
+              Поддержка после покупки
+            </span>
+            <span className="rounded-full border border-yellow-400/25 bg-black/35 px-4 py-2">
+              Оплата картой / FreeKassa / крипта
+            </span>
           </div>
         </div>
 
