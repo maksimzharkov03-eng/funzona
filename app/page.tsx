@@ -1,5 +1,7 @@
 "use client";
 
+import ReviewsSection from "./ReviewsSection";
+
 import { useEffect, useState } from "react";
 
 export default function Home() {
@@ -68,7 +70,7 @@ export default function Home() {
               Поддержка
             </a>
             <a
-              href="#reviews"
+              href="/#reviews"
               className="flex min-h-[56px] items-center justify-center rounded-xl border border-yellow-400/50 px-6 py-3 text-center text-base font-black leading-tight text-white transition hover:bg-yellow-400/10"
             >
               Отзывы
@@ -168,6 +170,7 @@ export default function Home() {
           </a>
         </div>
       </section>
-    </main>
+          <ReviewsSection />
+</main>
   );
 }
