@@ -148,6 +148,9 @@ export default function ReviewsSection() {
             className="rounded-3xl border border-yellow-400/20 bg-white/[0.05] p-5"
           >
             <h3 className="text-2xl font-black text-white">Оставить отзыв</h3>
+            <p className="mt-2 text-sm font-bold leading-6 text-slate-400">
+              Отзывы публикуются только после оплаченной сделки в FunZona.
+            </p>
 
             <label className="mt-5 block text-sm font-black uppercase text-slate-300">
               Имя
@@ -179,7 +182,7 @@ export default function ReviewsSection() {
               <textarea
                 value={text}
                 onChange={(event) => setText(event.target.value)}
-                placeholder="Напишите пару слов о покупке"
+                placeholder="Отзыв можно оставить после оплаченной сделки"
                 rows={5}
                 className="mt-2 w-full resize-none rounded-xl border border-yellow-400/20 bg-black px-4 py-3 text-base font-bold text-white outline-none transition focus:border-yellow-400"
               />
@@ -192,7 +195,7 @@ export default function ReviewsSection() {
               disabled={loading}
               className="mt-5 flex min-h-[54px] w-full items-center justify-center rounded-xl bg-yellow-400 px-5 py-3 text-base font-black text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Отправляем..." : "Опубликовать отзыв"}
+              {loading ? "Отправляем..." : "Опубликовать отзыв после сделки"}
             </button>
           </form>
         </div>

@@ -1,4 +1,5 @@
 import { prisma } from "@/app/lib/prisma";
+import { getServerUser, unauthorizedJson } from "@/app/lib/server-auth";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,29 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const currentUser = await getServerUser();
+
+    if (!currentUser) {
+      return unauthorizedJson("Чтобы оставить отзыв, войди в аккаунт после покупки.");
+    }
+
+    const completedOrder = await prisma.order.findFirst({
+      where: {
+        userLogin: currentUser.login,
+        status: {
+          in: ["Оплачен", "В работе", "Выдан"],
+        },
+      },
+      select: { id: true },
+    });
+
+    if (!completedOrder) {
+      return NextResponse.json(
+        { error: "Отзыв можно оставить только после оплаченной сделки." },
+        { status: 403 },
+      );
+    }
+
     const body = await req.json();
     const name = cleanText(body.name, 40) || "Клиент FunZona";
     const text = cleanText(body.text, 600);
