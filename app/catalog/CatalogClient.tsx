@@ -448,11 +448,35 @@ function CatalogCheckoutPanel({
   );
 }
 
+
+function getInitialCatalogCategory() {
+  if (typeof window === "undefined") return "Подписки";
+
+  const rawCategory = new URLSearchParams(window.location.search).get("category") || "";
+  const category = decodeURIComponent(rawCategory).trim();
+
+  if (category === "Apple ID") return "Apple ID";
+  if (category === "Подписки") return "Подписки";
+  if (category === "ChatGPT") return "ChatGPT";
+  if (category === "Apple ID") return "Apple ID";
+
+  return "Подписки";
+}
+
 export default function CatalogClient() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
-  const [category, setCategory] = useState("Подписки");
-  const [subscriptionSubcategory, setSubscriptionSubcategory] = useState<"all" | "gpt" | "ps" | "xbox">("all");
+  const [category, setCategory] = useState(() => getInitialCatalogCategory() as any);
+  
+  useEffect(function syncGiftCodesCategoryFromUrl() {
+    const initialCategory = getInitialCatalogCategory();
+
+    if (initialCategory !== category) {
+      setCategory(initialCategory as any);
+    }
+  }, []);
+
+const [subscriptionSubcategory, setSubscriptionSubcategory] = useState<"all" | "gpt" | "ps" | "xbox">("all");
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [toast, setToast] = useState("");
@@ -542,7 +566,7 @@ const filteredProducts = useMemo(() => {
   const appleProducts = useMemo(
     () =>
       products
-        .filter((product) => product.category === "Подарочные коды")
+        .filter((product) => product.category === "Apple ID")
         .filter((product) => getAppleRegion(product) === appleRegion),
     [appleRegion, products]
   );
@@ -571,7 +595,7 @@ const filteredProducts = useMemo(() => {
   }, [catalogCart, category]);
 
   const appleCatalogCart = useMemo(
-    () => catalogCart.filter((item) => item.product.category === "Подарочные коды"),
+    () => catalogCart.filter((item) => item.product.category === "Apple ID"),
     [catalogCart]
   );
 
@@ -723,7 +747,7 @@ const filteredProducts = useMemo(() => {
               <p className="text-2xl font-black text-yellow-400">
                 {category === "Подписки"
                   ? subscriptionCount
-                  : category === "Подарочные коды"
+                  : category === "Apple ID"
                     ? appleProducts.length
                     : filteredProducts.length}
               </p>
@@ -928,7 +952,7 @@ const filteredProducts = useMemo(() => {
               />
             </div>
           </section>
-        ) : category === "Подарочные коды" ? (
+        ) : category === "Apple ID" ? (
           <section>
             <div className="mb-5 rounded-3xl border border-white/10 bg-[linear-gradient(135deg,#27272c,#14131a)] p-6 sm:p-8 overflow-hidden">
               <div className="flex items-center justify-between gap-5">
